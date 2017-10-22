@@ -1,0 +1,12 @@
+---
+# ROLE: setup_logrotation
+# roles/setup_logrotation/tasks/main.yml
+
+# Sets up logrotation
+# Usage:
+#    - { role: setup_logrotation, syslog_keep_days: 7, utility_log_keep_weeks: 4 }
+# the above example keeps system logs for 7 days and utility logs for 4 weeks
+
+- name: set rotation for system logs
+  become: yes
+  template: src=logrotate-sys.j2 dest=/etc/logrotate.d/rsyslog backup=yes

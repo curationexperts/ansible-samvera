@@ -1,0 +1,45 @@
+---
+# ROLE: sshd_config
+# roles/sshd_config/tasks/main.yml
+
+# Sets the default sshd session timeout
+# Usage:
+#    - { role: sshd_config, interval: 60, retries: 5 }
+# the above example times out after five one-minute checks
+
+- name: Disable TCP keepalives for sshd
+  become: yes
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^TCPKeepAlive'
+    line: 'TCPKeepAlive no'
+
+- name: Remove any ClientAliveInterval
+  become: yes
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^ClientAliveInterval'
+    state: absent
+
+- name: Remove any ClientAliveCountMax
+  become: yes
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^ClientAliveCountMax'
+    state: absent
+
+- name: Set new ClientAliveInterval
+  become: yes
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: ClientAliveInterval {{ interval | default(60) }}
+      
+- name: Set new ClientAliveCountMax
+  become: yes
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: ClientAliveCountMax {{ retries | default(5) }}
+    
+- name: restart ssh service
+  become: yes
+  service: name={{ ssh }} state=restarted 

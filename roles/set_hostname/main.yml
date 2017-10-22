@@ -1,0 +1,19 @@
+---
+# ROLE: set_hostname
+# roles/set_hostname/tasks/main.yml
+
+# Sets the server hostname
+# Usage:
+#    - { role: set_hostname, hostname: 'my_server' }
+# the above example times out after five one-minute checks
+
+- name: Set hostname
+  become: yes
+  hostname: name={{ hostname | default('localhost') }}
+
+- name: Edit /etc/hosts
+  become: yes
+  lineinfile: 
+    dest: /etc/hosts
+    state: present
+    line: 127.0.0.1 {{ server_name }}

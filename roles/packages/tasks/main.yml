@@ -9,7 +9,7 @@
   # the package module still depends on the underlying yum & apt modules
   # where the commands differ, we can't use a single task across distros
   package: update_cache=yes
-  when: 
+  when:
       (ansible_distribution == "Ubuntu") or
       (ansible_distribution == "Debian")
 
@@ -26,14 +26,14 @@
   become: yes
   # commands for upgrading differ - this is for apt
   package: upgrade=full
-  when: 
+  when:
       (ansible_distribution == "Ubuntu") or
       (ansible_distribution == "Debian")
 
 - name: install dev tools and libraries
   become: yes
   package: name={{ item }} state=installed
-  with_items: 
+  with_items:
     - build-essential
     - git
     - git-core
@@ -56,8 +56,6 @@
     - bison
     - subversion
     - pkg-config
-    - libmagickwand-dev
-    - imagemagick
     - libcurl4-openssl-dev
     - libxvidcore-dev
     - redis-server

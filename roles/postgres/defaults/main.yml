@@ -1,0 +1,8 @@
+# ROLE: postgres
+# roles/postgres/defaults/main.yml
+#
+
+postgres_pass: postgres
+db_name: my_db
+db_user: my__db_user
+db_pass: my_db_pass

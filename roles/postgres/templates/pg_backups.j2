@@ -1,0 +1,8 @@
+#!/bin/bash
+export PGPASSWORD="{{ db_pass | default('my_db_password') }}"
+# removes 2-day-old backup
+rm /opt/pg_backups/samvera_day_old.bak
+# renames latest backup to day-old
+mv /opt/pg_backups/samvera.bak /opt/pg_backups/samvera_day_old.bak
+# does fresh backup of samvera database
+pg_dump -U {{ db_user | default('my_db_user') }} {{ db | default('samvera') }} > /opt/pg_backups/samvera.bak

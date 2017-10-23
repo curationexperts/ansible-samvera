@@ -1,0 +1,58 @@
+# ROLE: fits
+# roles/fits/tasks/main.yml
+#
+# Installs FITS (File Information Tool Set)
+# Usage:
+#    - { role: fits, fits_version: '0.8.4'  }
+
+- name: ensure fits_version is set
+  set_fact:
+    fits_version: '0.8.4'
+  when: fits_version is not defined
+
+- name: setup install directory
+  set_fact:
+    install_path: /home/{{ ansible_ssh_user }}/install
+    
+- name: ensure install directory exists
+  file:
+    path: '{{ install_path }}'
+    state: directory
+
+- name: install zip utility
+  become: yes
+  package: name=unzip state=present
+
+- name: download fits zip version {{ fits_version }}
+  become: yes
+  get_url: url=http://projects.iq.harvard.edu/files/fits/files/fits-{{ fits_version }}.zip owner={{ ansible_ssh_user }} group={{ ansible_ssh_user }} dest={{ install_path }}/fits-{{ fits_version }}.zip
+
+- name: unpack fits
+  become: yes
+  unarchive: src={{ install_path }}/fits-{{ fits_version }}.zip dest={{ install_path }}/ creates={{ install_path }}/fits-{{ fits_version }}/fits.sh copy=no
+
+- name: make fits executable
+  become: yes
+  file: path={{ install_path }}/fits-{{ fits_version }}/fits.sh mode=0755
+
+- name: copy fits scripts
+  become: yes
+  shell: cp -r {{ install_path }}/fits-{{ fits_version }} /usr/local/lib/ creates=/usr/local/lib/fits-{{ fits_version }}
+
+- name: symlink fits alias
+  become: yes
+  file: src=/usr/local/lib/fits-{{ fits_version }}/fits.sh dest=/usr/local/bin/fits state=link
+  
+- name: symlink fits.sh alias
+  become: yes
+  file: src=/usr/local/lib/fits-{{ fits_version }}/fits.sh dest=/usr/local/bin/fits.sh state=link
+
+- name: set FITS_HOME in fits-env.sh
+  become: yes
+  lineinfile: dest=/usr/local/lib/fits-{{ fits_version }}/fits-env.sh regexp=^FITS_HOME line=FITS_HOME="/usr/local/lib/fits-{{ fits_version }}" state=present
+  when: fits_version | match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
+
+- name: symlink fits-env.sh alias
+  become: yes
+  file: src=/usr/local/lib/fits-{{ fits_version }}/fits-env.sh dest=/usr/local/bin/fits-env.sh state=link
+  when: fits_version | match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")

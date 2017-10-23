@@ -4,16 +4,16 @@
 
 # Sets the server hostname
 # Usage:
-#    - { role: set_hostname, hostname: 'my_server' }
+#    - { role: set_hostname, hostname: 'my_server', domain: 'example.com' }
 # the above example times out after five one-minute checks
 
 - name: Set hostname
   become: yes
-  hostname: name={{ hostname | default('localhost') }}
+  hostname: name={{ hostname }}
 
 - name: Edit /etc/hosts
   become: yes
   lineinfile: 
     dest: /etc/hosts
     state: present
-    line: 127.0.0.1 {{ server_name }}
+    line: 127.0.0.1 {{ hostname }} {{ [hostname domainnaime] | join('.') }}

@@ -14,29 +14,29 @@
 - name: remove package ruby
   become: yes
   package: name=ruby state=absent
-  
+
 - name: set ruby download path
-  set_fact: 
+  set_fact:
     ruby_gzip_url: http://cache.ruby-lang.org/pub/ruby/{{ ruby_major_minor_ver | default('2.3') }}/ruby-{{ ruby_ver | default('2.3.1') }}.tar.gz
   when: ruby_gzip_url is not defined
-    
+
 - name: set ruby checksum
   set_fact:
     ruby_sha_256: b87c738cb2032bf4920fef8e3864dc5cf8eae9d89d8d523ce0236945c5797dcd
   when: ruby_sha_256 is not defined
-  
+
 - name: setup install directory
   set_fact:
     install_path: /home/{{ ansible_ssh_user }}/install
-    
+
 - name: ensure install directory exists
   file:
     path: '{{ install_path }}'
     state: directory
 
 - name: download ruby
-  get_url: url={{ ruby_gzip_url }} sha256sum={{ ruby_sha_256 }}  dest={{ install_path }}/ruby-{{ ruby_ver | default('2.3.1') }}.tar.gz 
-  
+  get_url: url={{ ruby_gzip_url }} sha256sum={{ ruby_sha_256 }}  dest={{ install_path }}/ruby-{{ ruby_ver | default('2.3.1') }}.tar.gz
+
 - name: unzip ruby file
   unarchive: src={{ install_path }}/ruby-{{ ruby_ver }}.tar.gz dest={{ install_path }}/ creates={{ install_path }}/ruby-{{ ruby_ver }}/compile.c copy=no
 
@@ -47,9 +47,9 @@
 - name: configure ruby
   shell: cd {{ install_path }}/ruby-{{ ruby_ver }} && ./configure --enable-shared creates={{ install_path }}/ruby-{{ ruby_ver }}/Makefile
   when: ruby.stat.exists == False
-    
+
 - name: make ruby
-  shell: cd {{ install_path }}/ruby-{{ ruby_ver }} && make 
+  shell: cd {{ install_path }}/ruby-{{ ruby_ver }} && make
   when: ruby.stat.exists == False
 
 - name: install ruby
@@ -58,7 +58,9 @@
   when: ruby.stat.exists == False
 
 - name: update rubygems
+  become: yes
   command: gem update --system
- 
+
 - name: install bundler
+  become: yes
   gem: name=bundler user_install=no state=present

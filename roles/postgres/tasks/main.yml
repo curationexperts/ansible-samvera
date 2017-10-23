@@ -31,6 +31,24 @@
   become_user: postgres
   postgresql_user: name=postgres password={{ postgres_pass | default('postgres') }}
   
+- name: determine postgres directory
+  shell: ls /etc/postgresql
+  register: postgres_version
+  
+- name: configure md5 security local postgress users
+  become: yes
+  line_in_file:
+    path: /etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf
+    regexp: '^local\s+all\s+postgres'
+    line: 'local	all		postgres				md5'
+    
+- name: configure md5 security other local  users
+  become: yes
+  line_in_file:
+    path: /etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf
+    regexp: '^local\s+all\s+all'
+    line: 'local	all		all				md5'
+
 - name: restart postgres server
   become: yes
   service: name=postgresql enabled=yes state=restarted
@@ -40,6 +58,3 @@
   
 - name: add samvera user
   postgresql_user: db={{ db_name }} name={{ db_user }} password={{ db_pass }} priv=ALL state=present login_user=postgres login_password={{ postgres_pass }}
-
-
-

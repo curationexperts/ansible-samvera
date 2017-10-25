@@ -1,8 +1,8 @@
 ---
 # Role: apache
 # roles/apache/tasks/main.yml
-# 
-# Installs Apache plus Passenger 
+#
+# Installs Apache plus Passenger
 #
 # Usage:
 #    - { role: apache, passenger_ver: *required* }
@@ -41,3 +41,10 @@
 - name: enable rewrite module
   become: yes
   command: a2enmod rewrite
+
+- name: check basic http connection
+  action: uri url=http://localhost return_content=yes
+  register: webpage
+
+- fail: msg='ERROR Apache2 not running as expected'
+  when: "'Apache2 Ubuntu Default Page' not in webpage.content"

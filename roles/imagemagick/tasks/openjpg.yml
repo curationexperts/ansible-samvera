@@ -1,0 +1,28 @@
+---
+- name: download openjpg source
+  get_url:
+    url: http://downloads.sourceforge.net/project/openjpeg.mirror/{{ openjpg_ver }}/openjpeg-{{ openjpg_ver }}.tar.gz
+    dest: "imagemagick_sources/openjpeg-{{ openjpg_ver }}.tar.gz"
+    force: no
+
+- name: unzip openjpg source
+  shell: tar zxvf openjpeg-{{ openjpg_ver }}.tar.gz creates=openjpeg-version.{{ openjpg_ver }} warn=no
+  args:
+    chdir: imagemagick_sources
+
+- name: configure openjpg
+  shell: cmake ./
+  args:
+    chdir: imagemagick_sources/openjpeg-{{ openjpg_ver }}
+
+- name: make openjpg
+  shell: make
+  args:
+    chdir: imagemagick_sources/openjpeg-{{ openjpg_ver }}
+
+- name: install openjpg
+  become: yes
+  shell: make install
+  args:
+    chdir: imagemagick_sources/openjpeg-{{ openjpg_ver }}
+...

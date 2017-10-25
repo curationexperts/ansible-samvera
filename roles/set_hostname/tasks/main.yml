@@ -2,10 +2,11 @@
 # ROLE: set_hostname
 # roles/set_hostname/tasks/main.yml
 
-# Sets the server hostname
+# Sets the server hostname.
+# This role will fail if you call it
+# without hostname and domain being set.
 # Usage:
 #    - { role: set_hostname, hostname: 'my_server', domain: 'example.com' }
-# the above example times out after five one-minute checks
 
 - name: Set hostname
   become: yes
@@ -13,7 +14,7 @@
 
 - name: Edit /etc/hosts
   become: yes
-  lineinfile: 
+  lineinfile:
     dest: /etc/hosts
     state: present
-    line: 127.0.0.1 {{ hostname }} {{ [hostname domainnaime] | join('.') }}
+    line: 127.0.0.1 {{ hostname }} {{ [hostname, domain] | join('.') }}

@@ -1,0 +1,27 @@
+---
+- name: download imagemagick source
+  get_url:
+    url: http://www.imagemagick.org/download/releases/ImageMagick-{{ imagemagick_ver }}.tar.gz
+    dest: "imagemagick_sources/ImageMagick-{{ imagemagick_ver }}.tar.gz"
+    force: no
+
+- name: unzip imagemagick source
+  shell: tar zxvf ImageMagick-{{ imagemagick_ver }}.tar.gz creates=ImageMagick-{{ imagemagick_ver }} warn=no
+  args:
+    chdir: imagemagick_sources
+
+- name: configure imagemagick
+  shell: ./configure
+  args:
+    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_ver }}
+
+- name: make imagemagick
+  shell: make
+  args:
+    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_ver }}
+
+- name: install imagemagick
+  become: yes
+  shell: make install
+  args:
+    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_ver }}

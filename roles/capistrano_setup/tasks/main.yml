@@ -4,7 +4,16 @@
 #
 # Sets up the capistrano deployment user and shared directories
 # Usage:
-#    - { role: capistrano_setup }
+#    - { role: capistrano_setup, project_name: YOUR_PROJECT_NAME }
+# Optional:
+# Declare a keys_to_add variable to copy github ssh keys
+# to the deploy user
+# vars:
+#   keys_to_add:
+#     - https://github.com/mark-dce.keys
+#     - https://github.com/little9.keys
+#     - https://github.com/no-reply.keys
+#     - https://github.com/bess.keys
 
 - name: create cap group
   become: yes

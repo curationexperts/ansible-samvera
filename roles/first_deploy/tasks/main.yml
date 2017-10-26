@@ -20,21 +20,21 @@
       - database.yml
       - secrets.yml
 
-- name: clone repo 
-  git: 
-      repo: "{{ repo }}"
-      dest: /home/deploy/{{ project_name }}
+- name: clone repo
+  git:
+      repo: https://github.com/curationexperts/{{ project_name }}.git
+      dest: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
 - name: install gems (bundle install)
-  shell: bundle install 
+  shell: bundle install
   args:
-    chdir: /home/deploy/{{ project_name }}
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
 - name: create deployment keypair for connection user
   # Set up a keypair so the ansible user can connect as the capistrano deploy user
-  user: 
+  user:
       name: "{{ ansible_ssh_user }}"
-      generate_ssh_key: yes 
+      generate_ssh_key: yes
       ssh_key_file: .ssh/id_rsa
 
 - name: read public key
@@ -44,19 +44,19 @@
 
 - name: add public key to deploy user
   become: yes
-  authorized_key: 
-      user: "{{ capistrano_user }}" 
+  authorized_key:
+      user: deploy
       key: "{{ public_key.content | b64decode }}"
 
 - name: deploy to production directories with capistrano
-  shell: cap localhost deploy 
+  shell: cap localhost deploy
   args:
-    chdir: /home/deploy/{{ project_name }}
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
 - name: create apache vhosts file
   become: yes
   template: src=apache_vhost.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}.conf owner=root group=root backup=no
-  
+
 - name: symlink solr config
   become: yes
   file: src=/opt/{{ project_name }}/solr/config dest=/var/solr/data/{{ project_name }}/conf state=link force=yes
@@ -64,7 +64,7 @@
 - name: restart solr
   become: true
   service: name=solr state=restarted
-  
+
 - name: restart apache
   become: true
   service: name=apache2 state=restarted

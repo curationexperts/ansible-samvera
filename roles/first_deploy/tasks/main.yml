@@ -9,6 +9,10 @@
 # Does a minimal install of a codebase from development mode to bootstrap a capistrano deployment
 # The codebase being deployed must be capified and have a config/deploy/localhost.rb stage file
 
+- name: generate rails secret
+  command: openssl rand -hex 64
+  register: rails_secret
+
 - name: create shared config files
   become: yes
   template: src={{ item }}.j2 dest=/opt/{{ project_name }}/shared/config/{{ item }} owner=deploy group=deploy backup=no

@@ -11,6 +11,16 @@
         endscript
 }
 
+/opt/{{ project_name }}/log/production.log
+{
+        copytruncate
+        daily
+        rotate 30
+        compress
+        missingok
+        create 0644 deploy deploy
+}
+
 /var/log/mail.info
 /var/log/mail.warn
 /var/log/mail.err

@@ -2,7 +2,6 @@
 # roles/solr/defaults/main.yml
 
 # Default solr collection
-solr_core: samvera-prod
 solr_port: 8983
 solr_version: 6.6.2
 #Solr mem values are in MB.

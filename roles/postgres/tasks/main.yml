@@ -55,7 +55,7 @@
   service: name=postgresql enabled=yes state=restarted
 
 - name: create samvera database
-  postgresql_db: name={{ db_name }} state=present login_user=postgres login_password={{ postgres_pass }}
+  postgresql_db: name={{ project_name }} state=present login_user=postgres login_password={{ postgres_pass }}
 
 - name: add samvera user
-  postgresql_user: db={{ db_name }} name={{ db_user }} password={{ db_pass }} priv=ALL state=present login_user=postgres login_password={{ postgres_pass }}
+  postgresql_user: db={{ project_name }} name={{ db_user }} password={{ db_pass }} priv=ALL state=present login_user=postgres login_password={{ postgres_pass }}

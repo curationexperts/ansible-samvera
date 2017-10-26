@@ -1,0 +1,66 @@
+---
+# ROLE: first_deploy
+# roles/first_deploy/tasks/main.yml
+#
+# Runs the first Capistrano managed deployment
+# Usage:
+#    - { role: first_deploy, project_name: *required* }
+#
+# Does a minimal install of a codebase from development mode to bootstrap a capistrano deployment
+# The codebase being deployed must be capified and have a config/deploy/localhost.rb stage file
+
+- name: create shared config files
+  become: yes
+  template: src={{ item }}.j2 dest=/opt/{{ project_name }}/shared/config/{{ item }} owner=deploy group=deploy backup=no
+  with_items:
+      - database.yml
+      - secrets.yml
+
+- name: clone repo 
+  git: 
+      repo: "{{ repo }}"
+      dest: /home/deploy/{{ project_name }}
+
+- name: install gems (bundle install)
+  shell: bundle install 
+  args:
+    chdir: /home/deploy/{{ project_name }}
+
+- name: create deployment keypair for connection user
+  # Set up a keypair so the ansible user can connect as the capistrano deploy user
+  user: 
+      name: "{{ ansible_ssh_user }}"
+      generate_ssh_key: yes 
+      ssh_key_file: .ssh/id_rsa
+
+- name: read public key
+  slurp:
+      src: /home/{{ ansible_ssh_user }}/.ssh/id_rsa.pub
+  register: public_key
+
+- name: add public key to deploy user
+  become: yes
+  authorized_key: 
+      user: "{{ capistrano_user }}" 
+      key: "{{ public_key.content | b64decode }}"
+
+- name: deploy to production directories with capistrano
+  shell: cap localhost deploy 
+  args:
+    chdir: /home/deploy/{{ project_name }}
+
+- name: create apache vhosts file
+  become: yes
+  template: src=apache_vhost.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}.conf owner=root group=root backup=no
+  
+- name: symlink solr config
+  become: yes
+  file: src=/opt/{{ project_name }}/solr/config dest=/var/solr/data/{{ project_name }}/conf state=link force=yes
+
+- name: restart solr
+  become: true
+  service: name=solr state=restarted
+  
+- name: restart apache
+  become: true
+  service: name=apache2 state=restarted

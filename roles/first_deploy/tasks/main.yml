@@ -25,6 +25,14 @@
       repo: https://github.com/curationexperts/{{ project_name }}.git
       dest: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
+- name: copy solr config files
+  become: yes
+  shell: cp /home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/* /var/solr/data/{{ project_name }}/conf
+
+- name: restart solr
+  become: true
+  service: name=solr state=restarted
+
 - name: install gems (bundle install)
   shell: bundle install
   args:
@@ -51,18 +59,6 @@
 - name: create apache vhosts file
   become: yes
   template: src=apache_vhost.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}.conf owner=root group=root backup=no
-
-- name: symlink schema from code to solr
-  become: yes
-  file: src=/opt/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes
-
-- name: symlink solrconfig from code to solr
-  become: yes
-  file: src=/opt/{{ project_name }}/solr/config/solrconfig.xml dest=/var/solr/data/{{ project_name }}/conf/solrconfig.xml state=link force=yes
-
-- name: restart solr
-  become: true
-  service: name=solr state=restarted
 
 - name: deploy to production directories with capistrano
   shell: cap localhost deploy

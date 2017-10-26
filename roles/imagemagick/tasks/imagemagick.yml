@@ -25,3 +25,7 @@
   shell: make install
   args:
     chdir: imagemagick_sources/ImageMagick-{{ imagemagick_ver }}
+
+- name: link new ImageMagick
+  become: yes
+  shell: ldconfig

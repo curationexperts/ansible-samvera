@@ -28,4 +28,6 @@
 
 - name: link new ImageMagick
   become: yes
-  shell: ldconfig
+  shell: ldconfig /usr/local/lib
+  args:
+    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_ver }}

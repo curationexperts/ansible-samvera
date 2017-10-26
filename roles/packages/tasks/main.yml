@@ -48,6 +48,9 @@
     - libxml2-dev
     - libxslt-dev
     - libgmp3-dev
+    - libreoffice
+    - libmagickwand-dev
+    - imagemagick
     - autoconf
     - libc6-dev
     - ncurses-dev
@@ -62,4 +65,3 @@
     - nodejs
     - xfsprogs
     - libsqlite3-dev
-    - libreoffice

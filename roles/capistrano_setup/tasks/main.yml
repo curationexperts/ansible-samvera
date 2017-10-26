@@ -27,6 +27,7 @@
   become: yes
   file: path={{ item }} state=directory owner=deploy group=deploy
   with_items:
+    - /opt/{{ project_name }}/shared/config
     - /opt/{{ project_name }}/shared/log
     - /opt/{{ project_name }}/releases
     - /opt/derivatives

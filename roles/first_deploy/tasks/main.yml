@@ -52,23 +52,28 @@
   become: yes
   template: src=apache_vhost.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}.conf owner=root group=root backup=no
 
-- name: symlink schema from code to solr
-  become: yes
-  file: src=/opt/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes
-
-- name: symlink solrconfig from code to solr
-  become: yes
-  file: src=/opt/{{ project_name }}/solr/config/solrconfig.xml dest=/var/solr/data/{{ project_name }}/conf/solrconfig.xml state=link force=yes
-
-- name: restart solr
-  become: true
-  service: name=solr state=restarted
-
 - name: deploy to production directories with capistrano
   shell: cap localhost deploy
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
+- name: symlink schema from code to solr
+  become: yes
+  file: src=/opt/{{ project_name }}/current/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes
+
+- name: symlink solrconfig from code to solr
+  become: yes
+  file: src=/opt/{{ project_name }}/current/solr/config/solrconfig.xml dest=/var/solr/data/{{ project_name }}/conf/solrconfig.xml state=link force=yes
+
+- name: restart solr
+  become: true
+  service: name=solr state=restarted
+
 - name: restart apache
   become: true
   service: name=apache2 state=restarted
+
+- name: ensure default admin set with capistrano
+  shell: cap localhost hyrax:ensure_default_admin_set
+  args:
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}

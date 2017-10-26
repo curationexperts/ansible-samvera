@@ -29,6 +29,7 @@
   with_items:
     - /opt/{{ project_name }}/shared/log
     - /opt/{{ project_name }}/releases
+    - /opt/derivatives
     - /home/deploy/.ssh
 
 - name: add keys for capistrano user

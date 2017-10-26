@@ -1,0 +1,30 @@
+---
+# ROLE: capistrano_setup
+# roles/capistrano_setup/tasks/main.yml
+#
+# Sets up the capistrano deployment user and shared directories
+# Usage:
+#    - { role: capistrano_setup }
+
+- name: create cap group
+  become: yes
+  group: name=deploy state=present
+
+- name: create cap user
+  become: yes
+  user: name=deploy group=deploy shell=/bin/bash createhome=yes state=present
+
+- name: create directories needed for capistrano
+  become: yes
+  file: path={{ item }} state=directory owner=deploy group=deploy
+  with_items:
+    - /opt/{{ project_name }}/shared/log
+    - /opt/{{ project_name }}/releases
+    - /home/deploy/.ssh
+
+- name: add keys for capistrano user
+  become: yes
+  authorized_key: user=deploy key={{ item }} exclusive=no state=present
+  with_items:
+    - "{{ keys_to_add }}"
+  when: keys_to_add is defined and keys_to_add != None

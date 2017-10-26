@@ -2,13 +2,13 @@
 # ROLE: solr
 # roles/solr/tasks/main.yml
 #
-# installs solr in production mode 
+# installs solr in production mode
 #
 
 - name: setup install directory
   set_fact:
     install_path: /home/{{ ansible_ssh_user }}/install
-    
+
 - name: ensure install directory exists
   file:
     path: '{{ install_path }}'
@@ -25,7 +25,7 @@
 
 - name: download solr tarball
   become: yes
-  get_url: url=http://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="md5:{{ solr_md5.stdout }}" 
+  get_url: url=http://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="md5:{{ solr_md5.stdout }}"
 
 - name: untar solr tarball
   become: yes
@@ -43,7 +43,7 @@
 - name: create default collection
   become: yes
   become_user: solr
-  shell: /opt/solr/bin/solr create -c {{ solr_core }} -d basic_configs -p {{ solr_port }} creates=/var/solr/data/{{ solr_core }}
+  shell: /opt/solr/bin/solr create -c {{ project_name }} -d basic_configs -p {{ solr_port }} creates=/var/solr/data/{{ project_name }}
 
 - name: Set JVM heap size
   become: yes
@@ -52,9 +52,9 @@
     state: present
     regexp: '^#SOLR_JAVA_MEM|^SOLR_JAVA_MEM'
     line: SOLR_JAVA_MEM="-Xms{{ solr_min_mem }}m -Xmx{{ solr_max_mem }}m"
-    
+
 - name: restart solr service
   become: yes
-  service: 
+  service:
     name: solr
     state: restarted

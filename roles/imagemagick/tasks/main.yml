@@ -21,5 +21,8 @@
 - name: build libpng
   import_tasks: libpng.yml
 
+- name: build ghostscript
+  import_tasks: ghostscript.yml
+
 - name: build imagemagick
   import_tasks: imagemagick.yml

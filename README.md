@@ -1,7 +1,13 @@
 # ansible-samvera
 Prototype Configuration Management Scripts for Samvera based servers
 
-Builds a production-style Samvera stack. Supports Ubuntu 16.04. 
+This is an ansible build script optimized for Ubuntu Linux 16.04 LTS (long term support). It will install:
+
+* Hyrax pre-requisites
+* solr on port 8983
+* fedora on port 8080
+* ffmpeg for video transcoding of video derivatives
+* imagemagick, ghostscript, and other image libraries for creating image derivatives
 
 ## Prerequisites
 [Ansible](http://docs.ansible.com/intro_installation.html) 2.0 or above.

@@ -2,60 +2,72 @@
 # ROLE: ruby
 # roles/ruby/tasks/main.yml
 #
-# removes package ruby, installs ruby from source
+# Installs the specified ruby version
+# Usage:
+#    - { role: ruby, ruby_version: '2.4.2'  }
 #
-#- name: check ruby {{ ruby_version }} installed
-#  shell: "ruby -v | grep {{ ruby_version }}"
-#  register: ruby_installed
-#  changed_when: false
-#  ignore_errors: yes # failure means our ruby version isn't installed yet
-#  always_run: yes
+# Reads http://cache.ruby-lang.org/pub/ruby/index.txt
+# to find download URL and checksum
 
-- name: remove package ruby
-  become: yes
-  package: name=ruby state=absent
 
-- name: set ruby download path
+- name: DEPRECATION! use 'ruby_version' instead of 'ruby_ver'
   set_fact:
-    ruby_gzip_url: http://cache.ruby-lang.org/pub/ruby/{{ ruby_major_minor_ver | default('2.3') }}/ruby-{{ ruby_ver | default('2.3.1') }}.tar.gz
-  when: ruby_gzip_url is not defined
+    ruby_version: ruby_ver
+    when: defined(ruby_ver) & undefined(ruby_version)
 
-- name: set ruby checksum
-  set_fact:
-    ruby_sha_256: b87c738cb2032bf4920fef8e3864dc5cf8eae9d89d8d523ce0236945c5797dcd
-  when: ruby_sha_256 is not defined
+- name: check if ruby {{ ruby_version }} is installed
+  shell: ruby --version | grep {{ ruby_version }}
+  ignore_errors: true
+  register: ruby_preinstalled
 
-- name: setup install directory
-  set_fact:
-    install_path: /home/{{ ansible_ssh_user }}/install
+- name: install ruby if it-s not already there
+  block:
+  - name: remove package ruby
+    become: yes
+    package: name=ruby state=absent
 
-- name: ensure install directory exists
-  file:
-    path: '{{ install_path }}'
-    state: directory
+  - name: lookup download path and checksum from ruby-lang release index
+    shell: curl http://cache.ruby-lang.org/pub/ruby/index.txt | grep {{ ruby_version}}.tar.gz
+    register: ruby_index_line
 
-- name: download ruby
-  get_url: url={{ ruby_gzip_url }} sha256sum={{ ruby_sha_256 }}  dest={{ install_path }}/ruby-{{ ruby_ver | default('2.3.1') }}.tar.gz
+  - name: separate index entry values
+    set_fact:
+      ruby_values: "{{ ruby_index_line.stdout | regex_findall('(\\S+)') }}"
 
-- name: unzip ruby file
-  unarchive: src={{ install_path }}/ruby-{{ ruby_ver }}.tar.gz dest={{ install_path }}/ creates={{ install_path }}/ruby-{{ ruby_ver }}/compile.c copy=no
+  - name: get ruby url
+    set_fact:
+      ruby_gzip_url: "{{ ruby_values[1] }}"
 
-- name: check if ruby is installed
-  stat: path=/usr/local/bin/ruby
-  register: ruby
+  - name: get ruby checksum
+    set_fact:
+      ruby_sha_256: "{{ ruby_values[3] }}"
 
-- name: configure ruby
-  shell: cd {{ install_path }}/ruby-{{ ruby_ver }} && ./configure --enable-shared creates={{ install_path }}/ruby-{{ ruby_ver }}/Makefile
-  when: ruby.stat.exists == False
+  - name: setup install directory
+    set_fact:
+      install_path: /home/{{ ansible_ssh_user }}/install
 
-- name: make ruby
-  shell: cd {{ install_path }}/ruby-{{ ruby_ver }} && make
-  when: ruby.stat.exists == False
+  - name: ensure install directory exists
+    file:
+      path: '{{ install_path }}'
+      state: directory
 
-- name: install ruby
-  become: yes
-  shell: cd {{ install_path }}/ruby-{{ ruby_ver }} && make install creates=/usr/local/bin/ruby
-  when: ruby.stat.exists == False
+  - name: download ruby
+    get_url: url={{ ruby_gzip_url }} sha256sum={{ ruby_sha_256 }}  dest={{ install_path }}/ruby-{{ ruby_version}}.tar.gz
+
+  - name: unzip ruby file
+    unarchive: src={{ install_path }}/ruby-{{ ruby_version}}.tar.gz dest={{ install_path }}/ creates={{ install_path }}/ruby-{{ ruby_version}}/compile.c copy=no
+
+  - name: configure ruby
+    shell: cd {{ install_path }}/ruby-{{ ruby_version}} && ./configure --enable-shared creates={{ install_path }}/ruby-{{ ruby_version}}/Makefile
+
+  - name: make ruby
+    shell: cd {{ install_path }}/ruby-{{ ruby_version}} && make
+
+  - name: install ruby
+    become: yes
+    shell: cd {{ install_path }}/ruby-{{ ruby_version}} && make install creates=/usr/local/bin/ruby
+  #when applied to each of the tasks in the block above
+  when: ruby_preinstalled.failed
 
 - name: update rubygems
   become: yes

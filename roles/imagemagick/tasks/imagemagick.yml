@@ -1,33 +1,52 @@
 ---
+
+- name: fetch imagemagick version archive list
+  shell: curl http://www.imagemagick.org/download/releases/ | grep '{{ imagemagick_ver }}'
+  register: imagemagick_archive_info
+
+- name: read patch-level from archive results
+  set_fact:
+    imagemagick_patchlevel: "{{ imagemagick_archive_info.stdout | regex_search( '\\d*\\.\\d*\\.\\d*-\\d*' ) }}"
+
+- name: read URL from archive results
+  # generate the download link for the release following the pattern
+  # http://www.imagemagick.org/download/releases/ImageMagick-7.0.3-10.tar.xz
+  set_fact:
+    imagemagick_url: "http://www.imagemagick.org/download/releases/{{ imagemagick_archive_info.stdout | regex_search('ImageMagick-.+\\.tar\\.xz') }}"
+
+- name: display imagemagick source info
+  debug:
+    msg: "Installing version {{ imagemagick_patchlevel }} from {{ imagemagick_url }}"
+
 - name: download imagemagick source
   get_url:
-    url: http://www.imagemagick.org/download/releases/ImageMagick-{{ imagemagick_ver }}.tar.gz
-    dest: "imagemagick_sources/ImageMagick-{{ imagemagick_ver }}.tar.gz"
+    url: "{{ imagemagick_url }}"
+    dest: "imagemagick_sources/ImageMagick-{{ imagemagick_patchlevel }}.tar.xz"
     force: no
 
 - name: unzip imagemagick source
-  shell: tar zxvf ImageMagick-{{ imagemagick_ver }}.tar.gz creates=ImageMagick-{{ imagemagick_ver }} warn=no
+  shell: tar xf ImageMagick-{{ imagemagick_patchlevel }}.tar.xz creates=ImageMagick-{{ imagemagick_patchlevel }} warn=no
   args:
     chdir: imagemagick_sources
 
 - name: configure imagemagick
   shell: ./configure
   args:
-    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_ver }}
+    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_patchlevel }}
 
 - name: make imagemagick
   shell: make
   args:
-    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_ver }}
+    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_patchlevel }}
 
-- name: install imagemagick
+- name: install imagemagick {{ imagemagick_patchlevel }}
   become: yes
   shell: make install
   args:
-    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_ver }}
+    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_patchlevel }}
 
 - name: link new ImageMagick
   become: yes
   shell: ldconfig /usr/local/lib
   args:
-    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_ver }}
+    chdir: imagemagick_sources/ImageMagick-{{ imagemagick_patchlevel }}

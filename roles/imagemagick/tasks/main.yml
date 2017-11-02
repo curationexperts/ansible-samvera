@@ -6,8 +6,10 @@
 # Installs a specified version of ImageMagick. Note there are specific versions
 # of supporting libraries tested to work with Samvera PDF derivatives.
 #   Known good version combo:
-# - { role: imagemagick, imagemagick_ver: '7.0.7-8', openjpg_ver: '2.1.0', libtiff_ver: '4.0.5', libpng_ver: '1.6.28' }
-
+# - { role: imagemagick, imagemagick_version: '7.0.7', openjpg_ver: '2.1.0', libtiff_ver: '4.0.5', libpng_ver: '1.6.28', gs_ver: '9.19' }
+#
+# NOTE: you may supply either a fully specificed IM version with patchlevel, or omit the patchlevel.
+#       If the patchlevel is omitted, the system will install the most recent available patch for the specified version number.
 
 - name: install imagemagick specific dependencies
   import_tasks: im_libraries.yml

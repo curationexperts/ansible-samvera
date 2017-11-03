@@ -72,7 +72,3 @@
 - name: update rubygems
   become: yes
   command: gem update --system
-
-- name: install bundler
-  become: yes
-  gem: name=bundler user_install=no state=present

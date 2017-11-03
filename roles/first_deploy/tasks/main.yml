@@ -52,6 +52,10 @@
   become: yes
   template: src=apache_vhost.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}.conf owner=root group=root backup=no
 
+- name: restart apache
+  become: true
+  service: name=apache2 state=restarted
+
 - name: deploy to production directories with capistrano
   shell: cap localhost deploy
   args:

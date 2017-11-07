@@ -77,7 +77,9 @@
   become: true
   service: name=apache2 state=restarted
 
-- name: ensure default admin set with capistrano
-  shell: cap localhost hyrax:ensure_default_admin_set
+- name: ensure default admin set with rake
+  become: yes
+  become_user: deploy
+  shell: RAILS_ENV=production bundle exec rake hyrax:default_admin_set:create
   args:
-    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
+    chdir: /opt/{{ project_name }}/current

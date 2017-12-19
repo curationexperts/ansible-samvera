@@ -57,7 +57,6 @@
 - name: configure ffmpeg
   shell: ./configure 
               --extra-libs=-lpthread 
-              --bindir="$HOME/bin" 
               --enable-gpl 
               --enable-libass 
               --enable-libfdk-aac 

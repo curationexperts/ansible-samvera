@@ -1,0 +1,16 @@
+# ROLE: nailgun
+# roles/nailgun/tasks/main.yml
+#
+# Installs the nailgun client and server
+# Usage:
+#    - { role: nailgun }
+
+- name: install nailgun package
+  become: yes
+  package: name=nailgun state=present
+
+- name: install nailgun systemd service
+  template: src=nailgun.j2 dest=/etc/systemd/system/nailgun.service
+
+- name: start nailgun service
+  systemd: state=started name=nailgun daemon_reload=yes

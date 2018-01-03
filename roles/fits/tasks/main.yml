@@ -13,7 +13,7 @@
 - name: setup install directory
   set_fact:
     install_path: /home/{{ ansible_ssh_user }}/install
-    
+
 - name: ensure install directory exists
   file:
     path: '{{ install_path }}'
@@ -42,10 +42,18 @@
 - name: symlink fits alias
   become: yes
   file: src=/usr/local/lib/fits-{{ fits_version }}/fits.sh dest=/usr/local/bin/fits state=link
-  
+
 - name: symlink fits.sh alias
   become: yes
   file: src=/usr/local/lib/fits-{{ fits_version }}/fits.sh dest=/usr/local/bin/fits.sh state=link
+
+- name: make fits-ngserver executable
+  become: yes
+  file: path={{ install_path }}/fits-{{ fits_version }}/fits-ngserver.sh mode=0755
+
+- name: symlink fits-ngserver.sh alias
+  become: yes
+  file: src=/usr/local/lib/fits-{{ fits_version }}/fits-ngserver.sh dest=/usr/local/bin/fits-ngserver.sh state=link
 
 - name: set FITS_HOME in fits-env.sh
   become: yes

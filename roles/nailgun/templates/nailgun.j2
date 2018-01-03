@@ -1,0 +1,8 @@
+[Unit]
+Description=FITS nailgun service
+
+[Service]
+ExecStart=/usr/local/bin/fits-ngserver.sh {{ install_path }}/nailgun/nailgun-server/target/nailgun-server-0.9.2-SNAPSHOT.jar
+
+[Install]
+WantedBy=multi-user.target

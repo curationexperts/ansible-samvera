@@ -1,0 +1,55 @@
+# ROLE: nailgun
+# roles/nailgun/tasks/main.yml
+#
+# Installs the nailgun client and server
+# Usage:
+#    - { role: nailgun }
+
+- name: install maven
+  become: yes
+  package: name=maven state=present
+
+- name: setup install directory
+  set_fact:
+    install_path: /home/{{ ansible_ssh_user }}/install
+
+- name: ensure install directory exists
+  file:
+    path: '{{ install_path }}'
+    state: directory
+
+- name: ensure nailgun directory exists
+  file:
+    path: '{{ install_path }}/nailgun'
+    state: directory
+
+- git:
+    repo: 'https://github.com/facebook/nailgun.git'
+    dest: '{{ install_path }}/nailgun'
+
+- name: build ng client
+  command: make
+  args:
+    chdir: '{{ install_path }}/nailgun'
+
+- name: build jars
+  command: mvn install
+  args:
+    chdir: '{{ install_path }}/nailgun'
+
+- name: symlink ng client
+  become: yes
+  file: src='{{ install_path }}/nailgun/ng' dest=/usr/local/bin/ng state=link
+
+- name: install nailgun systemd service
+  template: src=nailgun.j2 dest=/etc/systemd/system/nailgun.service
+
+- name: install fits-ng bash script
+  template: src=fits-ng.j2 dest=/usr/local/bin/fits-ng.sh
+
+- name: make fits-ng executable
+  become: yes
+  file: path=/usr/local/bin/fits-ng.sh mode=0755
+
+- name: start nailgun service
+  systemd: state=started name=nailgun daemon_reload=yes

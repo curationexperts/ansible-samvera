@@ -1,0 +1,25 @@
+---
+# ROLE: packages
+# roles/clamav/tasks/main.yml
+#
+# installs standalone (non-deamon) clamav and downloads
+# virus definitions
+#
+- name: install clamav packages for RedHat based systems
+  package: name={{ item }} state=present
+  become: yes
+  with_items:
+    - clamav
+    - clamav-update
+  when: ansible_distribution == 'RedHat' or ansible_distribution == 'Fedora'
+
+- name: install clamav packages for Debian based systems
+  package: name={{ item }} state=present
+  become: yes
+  with_items:
+    - clamav
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+- name: download virus definitions
+  become: yes
+  command: freshclam

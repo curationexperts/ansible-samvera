@@ -34,6 +34,14 @@
   become: yes
   shell: bash -c "passenger-install-apache2-module --snippet > /etc/apache2/conf-enabled/passenger.conf" creates=/etc/apache2/conf-enabled/passenger.conf
 
+- name: configure passenger.conf to accept encoded slashes
+  become: yes
+  lineinfile:
+    dest: /etc/apache2/conf-enabled/passenger.conf
+    state: present
+    line: PassengerAllowEncodedSlashes on
+    insertbefore: </IfModule>
+
 - name: remove default apache site
   become: yes
   file: path=/etc/apache2/sites-enabled/000-default.conf state=absent

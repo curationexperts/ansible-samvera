@@ -1,0 +1,17 @@
+---
+# ROLE: packages
+# roles/clamav/tasks/main.yml
+#
+# installs clamav and downloads virus definitions
+# by default, ubuntu sets clamav and freshclam to run in daemon mode
+# with virus definitions updated hourly
+
+- name: install clamav packages for Debian based systems
+  package: name={{ item }} state=present
+  become: yes
+  with_items:
+    - clamav
+    - clamav-base
+    - clamav-daemon
+    - clamav-freshclam
+  when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'

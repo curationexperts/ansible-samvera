@@ -23,6 +23,6 @@
 - name: restart apache
   become: yes
   service:
-    name: httpd
+    name: apache2
     enabled: yes
     state: restarted

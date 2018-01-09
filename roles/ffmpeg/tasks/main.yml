@@ -8,6 +8,10 @@
 #
 # NOTE: this role largely follows the instructions at https://trac.ffmpeg.org/wiki/CompilationGuide/Ubuntu
 
+- name: setup install directory
+  set_fact:
+    install_path: /home/{{ ansible_ssh_user }}/install
+
 - name: remove package ffmpeg
   become: yes
   package: name=ffmpeg state=absent

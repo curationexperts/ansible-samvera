@@ -8,10 +8,14 @@
 #
 # NOTE: this role largely follows the instructions at https://trac.ffmpeg.org/wiki/CompilationGuide/Ubuntu
 
+- name: setup install directory
+  set_fact:
+    install_path: /home/{{ ansible_ssh_user }}/install
+
 - name: remove package ffmpeg
   become: yes
   package: name=ffmpeg state=absent
-  
+
 - name: install ffmpeg libraries
   become: yes
   package: name={{ item }} state=present
@@ -43,42 +47,47 @@
       - yasm
       - zlib1g-dev
 
+- name: ensure install directory exists
+  file:
+    path: '{{ install_path }}'
+    state: directory
+
 - name: download ffmpeg source
   get_url:
     url: http://ffmpeg.org/releases/ffmpeg-{{ ffmpeg_version }}.tar.bz2
-    dest: "install/ffmpeg-{{ ffmpeg_version }}.tar.bz2"
+    dest: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}.tar.bz2'
     force: no
 
 - name: unzip ffmpeg source
   shell: tar -vxjf ffmpeg-{{ ffmpeg_version }}.tar.bz2 creates=ffmpeg-{{ ffmpeg_version }}/RELEASE warn=no
   args:
-    chdir: install
+    chdir: '{{ install_path }}'
 
 - name: configure ffmpeg
-  shell: ./configure 
-              --extra-libs=-lpthread 
-              --enable-gpl 
-              --enable-libass 
-              --enable-libfdk-aac 
-              --enable-libfreetype 
-              --enable-libmp3lame 
-              --enable-libopus 
-              --enable-libtheora 
-              --enable-libvorbis 
-              --enable-libvpx 
-              --enable-libx264 
-              --enable-libx265 
+  shell: ./configure
+              --extra-libs=-lpthread
+              --enable-gpl
+              --enable-libass
+              --enable-libfdk-aac
+              --enable-libfreetype
+              --enable-libmp3lame
+              --enable-libopus
+              --enable-libtheora
+              --enable-libvorbis
+              --enable-libvpx
+              --enable-libx264
+              --enable-libx265
               --enable-nonfree
   args:
-    chdir: install/ffmpeg-{{ ffmpeg_version }}
+    chdir: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}'
 
 - name: make ffmpeg
   shell: make
   args:
-    chdir: install/ffmpeg-{{ ffmpeg_version }}
+    chdir: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}'
 
 - name: install ffmpeg
   become: yes
   shell: make install
   args:
-    chdir: install/ffmpeg-{{ ffmpeg_version }}
+    chdir: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}'

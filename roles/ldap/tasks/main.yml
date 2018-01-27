@@ -1,0 +1,141 @@
+---
+# ROLE: ldap
+# roles/ldap/tasks/main.yml
+#
+# installs slapd ldap server
+
+- name: install slapd
+  package: name={{ item }} state=present
+  become: yes
+  with_items:
+    - slapd
+    - ldap-utils
+    - python-ldap
+    
+# NOTE: Contrary to expectation, this does not actually set the ldap admin password, which must be 
+# done manually by logging into the server and running `sudo dpkg-reconfigure slapd`. Give it the ldap_master_password 
+# specified in this repository's `hosts` file
+
+- name: set slapd password
+  become: yes
+  debconf:
+    name: slapd
+    question: slapd/password1
+    value: "{{ ldap_master_password }}"
+    vtype: password
+    
+- name: confirm slapd password
+  become: yes
+  debconf:
+    name: slapd
+    question: slapd/password2
+    value: "{{ ldap_master_password }}"
+    vtype: password
+    
+- name: slapd generated_adminpw
+  become: yes
+  debconf:
+    name: slapd
+    question: slapd/internal/generated_adminpw
+    value: "{{ ldap_master_password }}"
+    vtype: password
+    
+- name: slapd adminpw
+  become: yes
+  debconf:
+    name: slapd
+    question: slapd/internal/adminpw
+    value: "{{ ldap_master_password }}"
+    vtype: password
+    
+- name: set ldap organization
+  become: yes  
+  debconf:
+    name: slapd
+    question: shared/organization
+    value: DataCurationExperts
+    vtype: string
+
+- name: ldap purge database?
+  become: yes  
+  debconf:
+    name: slapd
+    question: slapd/purge_database
+    value: false
+    vtype: boolean
+    
+- name: ldap disable ldap_v2
+  become: yes  
+  debconf:
+    name: slapd
+    question: slapd/allow_ldap_v2
+    value: false
+    vtype: boolean
+    
+- name: slapd enable configuration
+  become: yes  
+  debconf:
+    name: slapd
+    question: slapd/no_configuration
+    value: false
+    vtype: boolean
+
+- name: set slapd database
+  become: yes  
+  debconf:
+    name: slapd
+    question: slapd/backend
+    value: HDB
+    vtype: select
+
+- name: move old slapd database
+  become: yes  
+  debconf:
+    name: slapd
+    question: slapd/move_old_database
+    value: true
+    vtype: boolean
+
+- name: set ldap domain
+  become: yes  
+  debconf:
+    name: slapd
+    question: slapd/domain
+    value: curationexperts.com
+    vtype: string
+    
+- name: warn about need to set ldap password manually
+  debug:
+    msg: |
+      "WARNING: There is a bug in the slapd configuration and the password will 
+      not be set automatically. If the password has not been set, the following 
+      tasks will fail. To set the password, ssh to the machine you're setting up
+      and issue the command `sudo dpkg-reconfigure slapd`. Provide the default 
+      answer to all questions, except for password, where you should give it 
+      the value configured for `ldap_master_password` in the hosts file of this
+      ansible repository."
+
+# Examples of how to populate LDAP
+# - name: create a parent entry for people
+#   become: yes  
+#   ldap_entry:
+#     bind_dn: cn=admin,dc=curationexperts,dc=com
+#     bind_pw: "{{ ldap_master_password }}"
+#     dn: ou=people,dc=curationexperts,dc=com
+#     objectClass: organizationalUnit
+# 
+# - name: create test user
+#   become: yes
+#   ldap_entry:
+#     bind_dn: cn=admin,dc=curationexperts,dc=com
+#     bind_pw: "{{ ldap_master_password }}"
+#     dn: cn=testuser,ou=people,dc=curationexperts,dc=com
+#     objectClass: inetOrgPerson
+#     attributes:
+#       description: A test user
+#       userPassword: password
+#       uid: testuser
+#       displayName: Jane Doe
+#       mail: jdoe@example.com
+#       sn: Doe
+# 

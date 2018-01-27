@@ -1,0 +1,30 @@
+# Connect Shibboleth to LDAP
+# Following this guide: https://www.fukr.org.uk/?p=19
+# However, we are using slapd, not Apache Directory Service
+
+# These files configure the connection to LDAP, define which LDAP properties to
+# retrieve and how to map them (attribute-resolver), and configure which LDAP
+# properties to return to the authenticated SP application (attribute-filter)
+- name: copy config files in place
+  become: yes
+  template: src={{ item }} dest=/opt/shibboleth-idp/conf/{{ item }} owner=tomcat8 group=tomcat8 backup=yes
+  with_items:
+      - ldap.properties
+      - attribute-resolver.xml
+      - attribute-filter.xml
+
+- name: restart tomcat8
+  become: yes
+  service:
+    name: tomcat8
+    enabled: yes
+    state: restarted
+    
+- name: check ldap attribute release
+  uri:
+    url: "https://{{ hostname }}.{{ domain }}/idp/profile/admin/resolvertest?requester=blah&principal=mark"
+    return_content: yes
+  register: webpage
+
+- fail: msg='idp is not returning ldap properties as expected'
+  when: "'mark@curationexperts.com' not in webpage.content"

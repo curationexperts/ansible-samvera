@@ -10,8 +10,11 @@ required to run a Hyrax-based repository, including:
 * Apache webserver
 * Ruby
 * FITS
-* FFMpeg and it's dependencies
-* ImageMagick and it's dependencies
+* FFMpeg and its dependencies
+* ImageMagick and its dependencies
+
+## Shibboleth
+The repository also contains roles that can be used to build a shibboleth authentication system. `shibboleth-idp` will build a shibboleth identity provider, and `shibboleth-sp` will configure a system to authenticate against shibboleth. In combination with the guide in the [DCE playbook](https://curationexperts.github.io/playbook/), this can be used to configure Hyrax to authenticate against Shibboleth.
 
 ## Prerequisites
 [Ansible](http://docs.ansible.com/intro_installation.html) 2.4 or above.

@@ -1,0 +1,78 @@
+---
+# ROLE: shibboleth-sp
+# roles/shibboleth-sp/tasks/main.yml
+
+# Installs current version of shibboleth sp (service provider). Expects to have a 
+# shibboleth_host variable defined, which will point to the shibboleth-idp server
+# against which to authenticate
+# Usage:
+#    - { role: shibboleth-sp, shibboleth_host: 'meredith.curationexperts.com' }
+#
+# NOTE: this role largely follows the instructions at https://www.fukr.org.uk/
+
+# Install and configure shibboleth service provider 
+# Following guide at https://www.fukr.org.uk/?p=21
+# 
+# This role requires that certain variables be defined. Here is an example hosts file:
+# [demo]
+# demo.curationexperts.com
+# 
+# [demo:vars]
+# hostname=demo
+# domain=curationexperts.com
+# shibboleth_host=idp.curationexperts.com
+# server_admin_email=systems@example.com
+
+
+- name: uninstall libapache2-mod-shib2
+  become: yes
+  package: name=libapache2-mod-shib2 state=absent
+  
+- name: install libapache2-mod-shib2
+  become: yes
+  package: name=libapache2-mod-shib2 state=present
+  
+- name: restart apache
+  become: yes
+  service:
+    name: apache2
+    enabled: yes
+    state: restarted
+
+- name: copy shibboleth2 config file in place
+  become: yes
+  template: src={{ item }} dest=/etc/shibboleth/{{ item }} owner=root group=root backup=yes
+  with_items:
+      - shibboleth2.xml
+      - attribute-map.xml
+
+- name: copy apache shibd directive file in place
+  become: yes
+  template: src=shibd.conf dest=/etc/apache2/conf-enabled/shibd.conf owner=root group=root backup=yes
+
+- name: copy idp-metadata file
+  become: yes
+  get_url:
+    url: https://{{ shibboleth_host }}/idp/shibboleth
+    dest: /etc/shibboleth/idp-metadata.xml
+    force: yes
+    owner: _shibd
+    group: _shibd
+    
+- name: create encryption key
+  become: yes
+  command: openssl req -new -newkey rsa:2048 -days 3650 -nodes -x509 -keyout /etc/shibboleth/sp-key.pem -out /etc/shibboleth/sp-cert.pem -subj /C=US/ST=Minnesota/L=Minneapolis/O=Data\ Curation\ Experts/OU=/CN=shibboleth/emailAddress=systems@curationexperts.com/
+
+- name: restart shibd
+  become: yes
+  service:
+    name: shibd
+    enabled: yes
+    state: restarted
+    
+- name: restart apache
+  become: yes
+  service:
+    name: apache2
+    enabled: yes
+    state: restarted

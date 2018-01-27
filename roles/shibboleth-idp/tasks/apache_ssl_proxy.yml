@@ -1,0 +1,42 @@
+# Proxy Shiboleth IDP behind apache SSL
+# Assumes that SSL has already been installed via the ansible-samvera apache role
+# Following the guide at https://www.fukr.org.uk/?p=9
+
+- name: enable mod_proxy_ajp
+  become: yes
+  command: a2enmod proxy_ajp
+
+- name: enable proxied idp site
+  become: yes
+  template: src=shib_idp.conf dest=/etc/apache2/sites-available/shib_idp.conf backup=yes
+
+- name: enable shib_idp site
+  become: yes
+  command: a2ensite shib_idp
+
+- name: restart apache
+  become: yes
+  service:
+    name: apache2
+    enabled: yes
+    state: restarted
+    
+- name: connect tomcat to ajp
+  become: yes
+  template: src=server.xml dest=$CATALINA_HOME/conf/server.xml owner=tomcat8 group=tomcat8 backup=yes
+
+- name: restart tomcat
+  become: yes
+  service:
+    name: tomcat8
+    enabled: yes
+    state: restarted
+
+- name: check ssl idp status
+  uri:
+    url: "https://{{ hostname}}.{{ domain }}/idp/status"
+    return_content: yes
+  register: webpage
+
+- fail: msg='idp is not running as expected'
+  when: "'idp_version' not in webpage.content"

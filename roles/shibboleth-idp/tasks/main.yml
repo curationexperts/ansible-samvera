@@ -1,0 +1,55 @@
+---
+# ROLE: shibboleth-idp
+# roles/shibboleth-idp/tasks/main.yml
+
+# Installs current version of shibboleth
+# Usage:
+#    - { role: shibboleth-idp }
+#
+# NOTE: this role largely follows the instructions at https://www.fukr.org.uk/ 
+# This role depends on some other roles. Here is an example playbook:
+#   - hosts: shibboleth_idp
+#   name: build shibboleth idp server
+#   user: ubuntu
+#   gather_facts: true
+#   environment:
+#     JAVA_HOME: /usr/lib/jvm/java-8-openjdk-amd64
+#     CATALINA_HOME: /var/lib/tomcat8
+#   vars:
+#   roles:
+#     - { role: packages }
+#     - { role: set_timezone, timezone: America/Chicago }
+#     - { role: set_hostname }
+#     - { role: sshd_config }
+#     - { role: setup_logrotation }
+#     - { role: pip }
+#     - { role: dce_ssl } # You'll need to define a local role that puts your SSL certs in place
+#     - { role: apache_with_mod_ssl }
+#     - { role: tomcat8 }
+#     - { role: ldap }
+#     - { role: populate-ldap } # You'll need to define a local role that populates your ldap users
+#     - { role: shibboleth-idp, idp_version: 3.3.2 }
+# #############
+# This role also requires that certain variables be set. Here is an example hosts entry for an idp server:
+# [idp]
+# idp.curationexperts.com
+# 
+# [idp:vars]
+# hostname = idp
+# project_name = auth
+# log_path = ./build_logs/idp_install.log
+# ldap_master_password = unique_password_here
+# tomcat8_web_gui_password = unique_password_here
+# server_admin_email = systems@example.com
+
+- name: install shibboleth idp
+  import_tasks: install_shibboleth_idp.yml
+  
+- name: configure sp metadata
+  import_tasks: configure_sp_metadata.yml
+
+- name: proxy shibboleth idp behind apache SSL
+  import_tasks: apache_ssl_proxy.yml
+ 
+- name: configure shibboleth idp to use slapd LDAP
+  import_tasks: shibboleth_to_ldap.yml

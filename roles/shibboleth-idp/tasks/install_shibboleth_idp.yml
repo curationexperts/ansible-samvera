@@ -1,0 +1,122 @@
+---
+# NOTE: this role largely follows the instructions at:
+# * https://www.cybera.ca/news-and-events/tech-radar/getting-started-on-shibboleth/ (out of date for Ubuntu 16.04)
+# * https://www.fukr.org.uk/?p=8 (better)
+
+- name: setup install directory
+  set_fact:
+    install_path: /home/{{ ansible_ssh_user }}/install
+
+- name: ensure install directory exists
+  file:
+    path: '{{ install_path }}'
+    state: directory
+
+- name: download shibboleth source
+  get_url:
+    url: "http://shibboleth.net/downloads/identity-provider/{{ idp_version }}/shibboleth-identity-provider-{{ idp_version }}.tar.gz"
+    dest: '{{ install_path }}/shibboleth-identity-provider-{{ idp_version }}.tar.gz'
+    force: no
+
+- name: unzip shibboleth source
+  shell: tar -vxzf shibboleth-identity-provider-{{ idp_version }}.tar.gz creates=shibboleth-identity-provider-{{ idp_version }} warn=no
+  args:
+    chdir: '{{ install_path }}'
+    
+- name: remove previously installed shibboleth
+  become: yes
+  command: rm -rf /opt/shibboleth-idp
+
+- name: install shibboleth
+  become: yes
+  expect:
+    command: ./bin/install.sh
+    responses:
+      Distribution: '{{ install_path }}/shibboleth-identity-provider-{{ idp_version }}'
+      Directory: /opt/shibboleth-idp
+      Hostname: "{{ hostname }}.{{ domain }}"
+      EntityID: "https://{{ hostname }}.{{ domain }}/idp/shibboleth"
+      Attribute: localdomain
+      Password: "{{ ldap_master_password }}"
+      Re-enter: "{{ ldap_master_password }}"
+      Cookie: "{{ ldap_master_password }}"
+      Re-enter: "{{ ldap_master_password }}"
+  args:
+    chdir: '{{ install_path }}/shibboleth-identity-provider-{{ idp_version }}'
+
+- name: tomcat8 user owns shibboleth-idp installation
+  become: yes
+  shell: chown -R tomcat8:tomcat8 /opt/shibboleth-idp
+
+- name: allow network connections from anywhere
+  become: yes
+  lineinfile:
+    dest: /opt/shibboleth-idp/conf/access-control.xml
+    state: present
+    line: p:allowedRanges="#{ {'0.0.0.0/0'} }" />
+    regexp: allowedRanges
+
+- name: install idp servlet into Tomcat8
+  become: yes
+  copy: 
+      content: |
+        <Context docBase="/opt/shibboleth-idp/war/idp.war"
+         privileged="true"
+         antiResourceLocking="false"
+         swallowOutput="true"/>
+      dest: "$CATALINA_HOME/conf/Catalina/localhost/idp.xml"
+      backup: no
+      owner: tomcat8
+      group: tomcat8
+      mode: 0644
+      
+- name: restart tomcat8
+  become: yes
+  service:
+    name: tomcat8
+    enabled: yes
+    state: restarted
+    
+- name: download java servlet tag library
+  become: yes
+  get_url:
+    url: https://build.shibboleth.net/nexus/service/local/repositories/thirdparty/content/javax/servlet/jstl/1.2/jstl-1.2.jar
+    dest: /opt/shibboleth-idp/edit-webapp/WEB-INF/lib
+    force: no
+    owner: tomcat8
+    group: tomcat8
+    
+- name: install java servlet tag library
+  become: yes
+  expect:
+    command: ./bin/build.sh
+    responses:
+      Directory: /opt/shibboleth-idp
+  args:
+    chdir: /opt/shibboleth-idp
+
+- name: update idp hostname in metadata
+  become: yes
+  replace:
+    path: /opt/shibboleth-idp/metadata/idp-metadata.xml
+    regexp: '/opt/shibboleth-idp'
+    replace: '{{ hostname }}.{{ domain }}'
+    backup: yes
+
+- name: update idp port in metadata
+  become: yes
+  replace:
+    path: /opt/shibboleth-idp/metadata/idp-metadata.xml
+    regexp: ':8443'
+    replace: ''
+    backup: yes
+    
+# 
+# - name: check idp status
+#   uri:
+#     url: http://localhost:8080/idp/status
+#     return_content: yes
+#   register: webpage
+# 
+# - fail: msg='idp is not running as expected'
+#   when: "'idp_version: {{ idp_version }}' not in webpage.content"

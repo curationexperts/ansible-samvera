@@ -1,0 +1,34 @@
+# The IDP server either:
+# 1) needs to have a metadata provider defined for each service 
+# provider (shibboleth-sp) which will authenticate
+# OR
+# 2) to configure relying-party.xml to allow requests from anywhere. 
+# This ansible role assumes option 2.
+
+# To do option 2 instead, do something like this: 
+# - name: copy sp-metadata files
+#   become: yes
+#   get_url:
+#     url: https://sp-configured-server.curationexperts.com/Shibboleth.sso/Metadata
+#     dest: /opt/shibboleth-idp/metadata/sp-metadata.xml
+#     force: yes
+#     owner: tomcat8
+#     group: tomcat8
+# For option 1, you'll also need to tell metadata-providers.xml to look for that
+# sp metadata file. 
+# If you go with option 1, you could also use a loop for all the sp services in metadata-providers.xml like this:
+# <!-- {% for host in sp-hostnames %}
+# 
+# <MetadataProvider id="{{ host }}-metadata" xsi:type="FileBackedHTTPMetadataProvider"
+# metadataURL="https://{{ host }}/Shibboleth.sso/Metadata"
+# backingFile="%{idp.home}/metadata/{{ host }}-metadata.xml"/>
+# 
+# {% endfor %} -->
+
+- name: configure relying-party settings to allow authentication from anywhere
+  become: yes
+  template: src=relying-party.xml dest=/opt/shibboleth-idp/conf/relying-party.xml owner=tomcat8 group=tomcat8 backup=yes
+
+- name: copy shibboleth2 metadata providers config
+  become: yes
+  template: src=metadata-providers.xml dest=/opt/shibboleth-idp/conf/metadata-providers.xml owner=tomcat8 group=tomcat8 backup=yes

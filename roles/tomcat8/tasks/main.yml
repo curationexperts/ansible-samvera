@@ -1,0 +1,64 @@
+---
+# ROLE: packages
+# roles/tomcat8/tasks/main.yml
+#
+# installs tomcat8 - required for shibboleth
+
+- name: install tomcat8 and java
+  become: yes
+  package: name={{ item }} state=present
+  with_items:
+      - openjdk-8-jdk-headless
+      - tomcat8
+      - tomcat8-admin
+      
+- name: configure environment to use openjdk
+  become: yes
+  lineinfile:
+    dest: /etc/profile
+    state: present
+    line: export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/jre
+    insertbefore: EOF
+    
+- name: configure environment to use tomcat8
+  become: yes
+  lineinfile:
+    dest: /etc/profile
+    state: present
+    line: export CATALINA_HOME=/var/lib/tomcat8
+    insertbefore: EOF
+    
+- name: configure tomcat8 admin gui
+  become: yes
+  lineinfile:
+    dest: /var/lib/tomcat8/conf/tomcat-users.xml
+    state: present
+    line: <role rolename="manager-gui"/><user username="admin" password="{{ tomcat8_web_gui_password }}" roles="manager-gui"/>
+    insertbefore: </tomcat-users>
+    
+- name: increase tomcat8 memory allocation
+  become: yes
+  lineinfile:
+    dest: /etc/default/tomcat8
+    state: present
+    line: JAVA_OPTS="-Djava.awt.headless=true -Xmx1500m -XX:+UseConcMarkSweepGC"
+    regexp: -Xmx
+  
+- name: restart tomcat8
+  become: yes
+  service:
+    name: tomcat8
+    enabled: yes
+    state: restarted
+    
+- name: check tomcat web gui
+  uri:
+    url: http://localhost:8080/manager/html
+    user: admin
+    password: "{{ tomcat8_web_gui_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: webpage
+
+- fail: msg='tomcat8 is not running as expected'
+  when: "'Tomcat Web Application Manager' not in webpage.content"

@@ -40,6 +40,7 @@
   * Add the `:application` name
   * Add the github `:repo_url`
   * Add this boilerplate, customizing as appropriate:
+  
   ```ruby
     set :deploy_to, '/opt/cypripedium'
 
@@ -60,6 +61,7 @@
     append :linked_files, "config/database.yml"
     append :linked_files, "config/secrets.yml"
   ```
+  
   Note: You do NOT want the `:passenger_restart_with_touch` option. This will prevent passenger from automatically restarting after you deploy. See https://github.com/capistrano/passenger#restarting-passenger--4033-applications
 1. Add this content to your `Capfile`:
   ```ruby

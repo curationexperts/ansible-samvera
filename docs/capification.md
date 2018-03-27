@@ -23,12 +23,13 @@
   ```
   Add these to your top level Gemfile section if they aren't there yet:
   ```ruby
-  gem 'pg'
+  gem 'pg', '~> 0.18'
   gem 'sidekiq'
   ```
   Run `bundle install`
 
   *Note*: If `pg` and `sidekiq` haven't been added to the project yet, chances are good they aren't really setup properly. Don't forget to go back and check that.
+  *Note*: Pinning `pg` to a pre-1.0 version is necessary because of this bug: https://github.com/rails/rails/issues/31678. Hopefully this will not always be the case.
 1. Make some DCE specific stages, instead of just the defaults: `bundle exec cap install STAGES=localhost,sandbox,qa,staging,production`
 3. Edit the newly created `config/deploy/localhost.rb` so it contains:
   ```ruby

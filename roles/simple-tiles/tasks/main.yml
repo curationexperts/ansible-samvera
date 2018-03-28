@@ -1,0 +1,53 @@
+---
+# ROLE: simple-tiles
+# roles/simple-tiles/tasks/main.yml
+#
+# USAGE:
+# Install simple-tiles (https://propublica.github.io/simple-tiles/)
+# - { role: simple-tiles, simple_tiles_ver: 0.6.1 }
+#
+
+- name: create gis sources dir
+  become: yes
+  file: owner={{ ansible_ssh_user }} group={{ ansible_ssh_user }} state=directory path=/home/{{ ansible_ssh_user }}/gis_sources
+
+- name: set gis sources dir
+  set_fact:
+    gis_sources: /home/{{ ansible_ssh_user }}/gis_sources
+    
+# - name: Install GDAL and required packages
+- name: Install geo_works required packages
+  become: yes
+  package: name={{ item }} state=installed
+  with_items:
+    - gdal-bin
+    - libgdal-dev
+    - libcairo2-dev
+    - libpango1.0-dev
+
+- name: download simple-tiles source
+  get_url:
+    url: "https://github.com/propublica/simple-tiles/archive/v{{ simple_tiles_ver }}.tar.gz"
+    dest: "{{ gis_sources }}/v{{ simple_tiles_ver }}.tar.gz"
+    force: no
+
+- name: unzip simple-tiles source
+  shell: tar zxvf v{{ simple_tiles_ver }}.tar.gz creates=simple-tiles-{{ simple_tiles_ver }} warn=no
+  args:
+    chdir: gis_sources
+
+- name: configure simple-tiles
+  shell: ./configure
+  args:
+    chdir: "{{ gis_sources }}/simple-tiles-{{ simple_tiles_ver }}"
+
+- name: make simple-tiles
+  shell: make
+  args:
+    chdir: "{{ gis_sources }}/simple-tiles-{{ simple_tiles_ver }}"
+
+- name: install simple-tiles
+  become: yes
+  shell: make install
+  args:
+    chdir: "{{ gis_sources }}/simple-tiles-{{ simple_tiles_ver }}"

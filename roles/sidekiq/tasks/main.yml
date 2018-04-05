@@ -1,0 +1,12 @@
+---
+- name: create sidekiq system service
+  become: yes
+  template: src=sidekiq.service.j2 dest=/lib/systemd/system/sidekiq.service owner=root group=root backup=no
+
+- name: enable sidekiq system service
+  become: yes
+  shell: /bin/systemctl enable sidekiq
+
+- name: allow deploy user to restart sidekiq
+  become: yes
+  template: src=sidekiq.sudoers.j2 dest=/etc/sudoers.d/sidekiq-restart-users owner=root group=root backup=no

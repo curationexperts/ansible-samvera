@@ -31,19 +31,19 @@
   *Note*: If `pg` and `sidekiq` haven't been added to the project yet, chances are good they aren't really setup properly. Don't forget to go back and check that.
   *Note*: Pinning `pg` to a pre-1.0 version is necessary because of this bug: https://github.com/rails/rails/issues/31678. Hopefully this will not always be the case.
 1. Make some DCE specific stages, instead of just the defaults: `bundle exec cap install STAGES=localhost,sandbox,qa,staging,production`
-3. Edit the newly created `config/deploy/localhost.rb` so it contains:
+1. Edit the newly created `config/deploy/localhost.rb` so it contains:
   ```ruby
    set :stage, :localhost
    set :rails_env, 'production'
    server '127.0.0.1', user: 'deploy', roles: [:web, :app, :db]
   ```
-4. Edit the newly created `config/deploy.rb` file:
+1. Edit the newly created `config/deploy.rb` file:
   * Add the `:application` name
   * Add the github `:repo_url`
   * Add this boilerplate, customizing as appropriate:
   
   ```ruby
-    set :deploy_to, '/opt/cypripedium'
+    set :deploy_to, '/opt/YOUR_PROJECT_NAME'
 
     set :log_level, :debug
     set :bundle_flags, '--deployment'
@@ -61,6 +61,30 @@
 
     append :linked_files, "config/database.yml"
     append :linked_files, "config/secrets.yml"
+    
+    # We have to re-define capistrano-sidekiq's tasks to work with
+    # systemctl in production. Note that you must clear the previously-defined
+    # tasks before re-defining them.
+    Rake::Task["sidekiq:stop"].clear_actions
+    Rake::Task["sidekiq:start"].clear_actions
+    Rake::Task["sidekiq:restart"].clear_actions
+    namespace :sidekiq do
+      task :stop do
+        on roles(:app) do
+          execute :sudo, :systemctl, :stop, :sidekiq
+        end
+      end
+      task :start do
+        on roles(:app) do
+          execute :sudo, :systemctl, :start, :sidekiq
+        end
+      end
+      task :restart do
+        on roles(:app) do
+          execute :sudo, :systemctl, :restart, :sidekiq
+        end
+      end
+    end
   ```
   
   Note: You do NOT want the `:passenger_restart_with_touch` option. This will prevent passenger from automatically restarting after you deploy. See https://github.com/capistrano/passenger#restarting-passenger--4033-applications

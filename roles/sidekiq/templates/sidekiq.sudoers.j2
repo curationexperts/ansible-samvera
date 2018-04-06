@@ -1,0 +1,4 @@
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl start sidekiq
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl stop sidekiq
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl restart sidekiq
+deploy ALL=(ALL) NOPASSWD: /bin/systemctl status sidekiq

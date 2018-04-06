@@ -66,3 +66,4 @@
     - xfsprogs
     - libsqlite3-dev
     - openjdk-8-jdk-headless
+    - zip

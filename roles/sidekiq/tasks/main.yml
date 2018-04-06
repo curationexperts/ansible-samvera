@@ -5,7 +5,15 @@
 
 - name: enable sidekiq system service
   become: yes
-  shell: /bin/systemctl enable sidekiq
+  systemd:
+    name: sidekiq
+    enabled: yes
+
+- name: start sidekiq system serverice
+  become: yes
+  systemd:
+    name: sidekiq
+    state: started
 
 - name: allow deploy user to restart sidekiq
   become: yes

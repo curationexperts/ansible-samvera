@@ -11,6 +11,7 @@
   become: yes
   with_items:
     - clamav
+    - libclamav-dev
     - clamav-base
     - clamav-daemon
     - clamav-freshclam

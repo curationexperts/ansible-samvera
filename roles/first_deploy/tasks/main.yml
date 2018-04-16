@@ -4,7 +4,7 @@
 #
 # Runs the first Capistrano managed deployment
 # Usage:
-#    - { role: first_deploy, project_name: *required* }
+#    - { role: first_deploy, project_name: *required*, branch: <optional> }
 #
 # Does a minimal install of a codebase from development mode to bootstrap a capistrano deployment
 # The codebase being deployed must be capified and have a config/deploy/localhost.rb stage file
@@ -24,6 +24,11 @@
   git:
       repo: https://github.com/curationexperts/{{ project_name }}.git
       dest: /home/{{ ansible_ssh_user }}/{{ project_name }}
+
+- name: checkout branch
+  shell: git checkout {{ branch | default('master') }}
+  args:
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
 - name: install gems (bundle install)
   shell: bundle install
@@ -52,12 +57,12 @@
   become: yes
   template: src=apache_vhost.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}.conf owner=root group=root backup=no
 
-- name: restart apache
-  become: true
+- name: restart apache to load new virtual host
+  become: yes
   service: name=apache2 state=restarted
 
 - name: deploy to production directories with capistrano
-  shell: cap localhost deploy
+  shell: BRANCH={{ branch | default('master') }} cap localhost deploy
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
@@ -73,8 +78,8 @@
   become: true
   service: name=solr state=restarted
 
-- name: restart apache
-  become: true
+- name: restart apache to load newly configured passenger application
+  become: yes
   service: name=apache2 state=restarted
 
 - name: ensure default admin set with rake

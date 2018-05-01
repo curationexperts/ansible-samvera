@@ -22,7 +22,7 @@
 
 - name: clone repo
   git:
-      repo: https://github.com/curationexperts/{{ project_name }}.git
+      repo: "{{ repo_url | default('https://github.com/curationexperts/{{ project_name }}.git') }}"
       dest: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
 - name: install gems (bundle install)

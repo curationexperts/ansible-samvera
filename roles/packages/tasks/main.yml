@@ -38,6 +38,7 @@
     - git
     - git-core
     - curl
+    - htop
     - openssl
     - libreadline6
     - libreadline6-dev

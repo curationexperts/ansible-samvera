@@ -19,10 +19,14 @@
   with_items:
       - database.yml
       - secrets.yml
+      
+- name: default repo name
+  set_fact:
+    default_repo_name: "https://github.com/curationexperts/{{ project_name }}.git"
 
 - name: clone repo
   git:
-      repo: "{{ repo_url | default('https://github.com/curationexperts/{{ project_name }}.git') }}"
+      repo: "{{ repo_url | default(default_repo_name) }}"
       dest: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
 - name: checkout branch

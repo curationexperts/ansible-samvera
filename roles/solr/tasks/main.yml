@@ -40,6 +40,12 @@
   shell: bash {{ install_path }}/solr-{{ solr_version }}/bin/install_solr_service.sh {{ install_path }}/solr-{{ solr_version }}.tgz -p {{ solr_port }}
   when: solr_init_script.stat.exists == False
 
+- name: remove managed schema
+  become: yes
+  file:
+    path: /var/solr/data/{{ project_name }}/conf/managed_schema
+    state: absent
+
 - name: create default collection
   become: yes
   become_user: solr

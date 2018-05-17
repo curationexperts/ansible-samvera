@@ -66,7 +66,7 @@
   service: name=apache2 state=restarted
 
 - name: deploy to production directories with capistrano
-  shell: BRANCH={{ branch | default('master') }} cap localhost deploy
+  shell: BRANCH_NAME={{ branch | default('master') }} cap localhost deploy
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 

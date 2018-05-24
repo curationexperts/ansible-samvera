@@ -33,6 +33,7 @@
     - /opt/{{ project_name }}/shared/tmp/pids
     - /opt/{{ project_name }}/releases
     - /opt/derivatives
+    - /opt/uploads
     - /home/deploy/.ssh
 
 - name: add keys for capistrano user

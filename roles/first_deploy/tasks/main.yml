@@ -24,6 +24,12 @@
   set_fact:
     default_repo_name: "https://github.com/curationexperts/{{ project_name }}.git"
 
+- name: remove any previously checked out git branch
+  become: yes
+  file:
+    path: /home/{{ ansible_ssh_user }}/{{ project_name }}
+    state: absent
+
 - name: clone repo
   git:
       repo: "{{ repo_url | default(default_repo_name) }}"
@@ -65,11 +71,29 @@
   become: yes
   service: name=apache2 state=restarted
 
+- name: remove managed schema
+  become: yes
+  file:
+    path: /var/solr/data/{{ project_name }}/conf/managed_schema
+    state: absent
+
+- name: temporary symlink schema from git checkout to solr
+  become: yes
+  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes
+
+- name: temporary symlink solrconfig from git checkout to solr
+  become: yes
+  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/solrconfig.xml dest=/var/solr/data/{{ project_name }}/conf/solrconfig.xml state=link force=yes
+
+- name: restart solr
+  become: true
+  service: name=solr state=restarted
+
 - name: deploy to production directories with capistrano
   shell: BRANCH={{ branch | default('master') }} cap localhost deploy
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
-
+    
 - name: symlink schema from code to solr
   become: yes
   file: src=/opt/{{ project_name }}/current/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes

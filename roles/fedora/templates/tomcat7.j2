@@ -5,4 +5,20 @@
 # TOMCAT_GROUP=tomcat
 TOMCAT7_USER=tomcat7
 TOMCAT7_GROUP=tomcat7
-JAVA_OPTS="-Dfcrepo.home=/opt/fedora-data -Dfcrepo.modeshape.configuration=classpath:/config/{{ fedora_database }}/repository.json -Djava.awt.headless=true -XX:+UseG1GC -XX:+UseCompressedOops -XX:-UseLargePagesIndividualAllocation -XX:MaxPermSize={{ tomcat_permgen_memory }} -Xms{{ tomcat_min_memory }} -Xmx{{ tomcat_max_memory }} -Djava.util.logging.config.file=/etc/tomcat7/logging.properties -server"
+# JAVA_OPTS="-Dfcrepo.home=/opt/fedora-data -Dfcrepo.modeshape.configuration=classpath:/config/{{ fedora_database }}/repository.json -Djava.awt.headless=true -XX:+UseG1GC -XX:+UseCompressedOops -XX:-UseLargePagesIndividualAllocation -XX:MaxPermSize={{ tomcat_permgen_memory }} -Xms{{ tomcat_min_memory }} -Xmx{{ tomcat_max_memory }} -Djava.util.logging.config.file=/etc/tomcat7/logging.properties -server"
+
+JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.home=/opt/fedora-data"
+JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.modeshape.configuration=classpath:/config/jdbc-postgresql/repository.json"
+JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.postgresql.username={{ fcdb_user }}"
+JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.postgresql.password={{ fcdb_pass }}"
+JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.postgresql.host=localhost"
+JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.postgresql.port=5432"
+JAVA_OPTS="${JAVA_OPTS} -Djava.awt.headless=true"
+JAVA_OPTS="${JAVA_OPTS} -XX:+UseG1GC"
+JAVA_OPTS="${JAVA_OPTS} -XX:+UseCompressedOops"
+JAVA_OPTS="${JAVA_OPTS} -XX:-UseLargePagesIndividualAllocation"
+JAVA_OPTS="${JAVA_OPTS} -XX:MaxPermSize={{ tomcat_permgen_memory }}"
+JAVA_OPTS="${JAVA_OPTS} -Xms{{ tomcat_min_memory }}"
+JAVA_OPTS="${JAVA_OPTS} -Xmx{{ tomcat_max_memory }}"
+JAVA_OPTS="${JAVA_OPTS} -Djava.util.logging.config.file=/etc/tomcat7/logging.properties"
+JAVA_OPTS="${JAVA_OPTS} -server"

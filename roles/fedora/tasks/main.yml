@@ -2,11 +2,25 @@
 # ROLE: fedora
 # roles/fedora/tasks/main.yml
 #
+# To back fedora with postgres, set these variables:
+# fedora_database: jdbc-postgresql
+# fcdb_user: fcdb_user
+# fcdb_pass: whatever
+# You must also create a postgres database called `fcrepo` and give the fcdb_user
+# rights on it
+# Note that backing fedora with PostGres is our default and is ALWAYS how we want
+# to run things in production.
+
+- name: create fcrepo database
+  postgresql_db: name=fcrepo state=present login_user=postgres login_password={{ postgres_pass }}
+
+- name: add samvera user
+  postgresql_user: db=fcrepo name={{ fcdb_user }} password={{ fcdb_pass }} priv=ALL state=present login_user=postgres login_password={{ postgres_pass }}
 
 - name: setup install directory
   set_fact:
     install_path: /home/{{ ansible_ssh_user }}/install
-    
+
 - name: ensure install directory exists
   file:
     path: '{{ install_path }}'
@@ -32,7 +46,7 @@
   command: cp {{ install_path }}/fcrepo-webapp-{{ fedora_version }}.war /var/lib/tomcat7/webapps/fedora.war
   when: fedora_war.stat.exists == False
 
-- name: create tomcat config and java options for Fedora 4.6+
+- name: create tomcat config and java options
   become: yes
   template:
     src: tomcat7.j2
@@ -40,8 +54,6 @@
     owner: tomcat7
     group: tomcat7
     backup: yes
-  when:
-    - fedora_version | match("^4\.[6-9]\.[0-9]")
 
 - name: set port for tomcat
   become: yes

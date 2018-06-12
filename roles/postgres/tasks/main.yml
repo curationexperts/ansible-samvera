@@ -57,13 +57,6 @@
 - name: create samvera database
   postgresql_db: name={{ project_name }} state=present login_user=postgres login_password={{ postgres_pass }}
 
-- name: create samvera database
-  postgresql_db: name=fcrepo state=present login_user=postgres login_password={{ postgres_pass }}
-  tags: temptag
-
 - name: add samvera user
   postgresql_user: db={{ project_name }} name={{ db_user }} password={{ db_pass }} priv=ALL state=present login_user=postgres login_password={{ postgres_pass }}
 
-- name: add fcrepo user
-  postgresql_user: db=fcrepo name={{ fcdb_user }} password={{ fcdb_pass }} priv=ALL state=present login_user=postgres login_password={{ postgres_pass }}
-  tags: temptag

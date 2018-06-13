@@ -59,3 +59,4 @@
 
 - name: add samvera user
   postgresql_user: db={{ project_name }} name={{ db_user }} password={{ db_pass }} priv=ALL state=present login_user=postgres login_password={{ postgres_pass }}
+

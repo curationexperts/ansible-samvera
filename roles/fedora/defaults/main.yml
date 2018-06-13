@@ -10,12 +10,10 @@ tomcat_max_memory: 4096m
 
 fedora_config_file: /etc/default/tomcat7
 
-fedora_version: 4.7.1
-#fedora_database only used in Fedora versions >= 4.6.0
-fedora_database: file-simple
-# for fcrepo 4.6.x, use minimal-default
-fcdb_user: admin
-fcdb_pass: admin123
+fedora_version: 4.7.5
+fedora_database: jdbc-postgresql
+# fcdb_user: admin
+# fcdb_pass: admin123
 fcdb_port: 5432
 
 tomcat_port: 8080

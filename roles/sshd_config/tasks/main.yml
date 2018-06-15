@@ -9,7 +9,7 @@
   copy: src=sshd_config dest=/etc/ssh/sshd_config
       owner=root
       group=root
-      mode=0644
+      mode=0600
 
 - name: restart ssh service
   become: yes

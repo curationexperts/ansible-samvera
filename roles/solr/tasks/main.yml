@@ -53,8 +53,14 @@
     regexp: '^#SOLR_JAVA_MEM|^SOLR_JAVA_MEM'
     line: SOLR_JAVA_MEM="-Xms{{ solr_min_mem }}m -Xmx{{ solr_max_mem }}m"
 
-- name: restart solr service
+- name: enable solr system service
   become: yes
-  service:
+  systemd:
+    name: solr
+    enabled: yes
+
+- name: restart solr system service
+  become: yes
+  systemd:
     name: solr
     state: restarted

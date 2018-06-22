@@ -65,8 +65,8 @@ PasswordAuthentication no
 # we've tried to connect 5 times, with 180
 # seconds between attempts
 TCPKeepAlive no
-ClientAliveInterval 120
-ClientAliveCountMax 5
+ClientAliveInterval 900
+ClientAliveCountMax 0
 
 X11Forwarding no
 X11DisplayOffset 10

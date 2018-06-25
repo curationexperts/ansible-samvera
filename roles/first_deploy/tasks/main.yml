@@ -8,6 +8,10 @@
 #
 # Does a minimal install of a codebase from development mode to bootstrap a capistrano deployment
 # The codebase being deployed must be capified and have a config/deploy/localhost.rb stage file
+- name: remove previous known_hosts file
+  file:
+    path: /home/{{ ansible_ssh_user }}/.ssh/known_hosts
+    state: absent
 
 - name: generate rails secret
   command: openssl rand -hex 64
@@ -19,7 +23,7 @@
   with_items:
       - database.yml
       - secrets.yml
-      
+
 - name: default repo name
   set_fact:
     default_repo_name: "https://github.com/curationexperts/{{ project_name }}.git"
@@ -93,7 +97,7 @@
   shell: BRANCH={{ branch | default('master') }} cap localhost deploy
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
-    
+
 - name: symlink schema from code to solr
   become: yes
   file: src=/opt/{{ project_name }}/current/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes

@@ -1,0 +1,20 @@
+- name: Download node.js installation script
+  get_url:
+    url: https://deb.nodesource.com/setup_8.x -o nodesource_setup.sh
+    dest: /home/{{ ansible_ssh_user }}
+
+- name: Run the nodesource setup script
+  script: /home/{{ ansible_ssh_user }}/nodesource_setup.sh
+
+- name: remove exisiting package
+  apt:
+    name: nodejs
+    state: absent
+    purge: true
+
+- name: update and install nodejs
+  become: true
+  apt:
+    name: nodejs
+    state: present
+    update_cache: true

@@ -42,3 +42,21 @@
   with_items:
     - "{{ keys_to_add }}"
   when: keys_to_add is defined and keys_to_add != None
+
+- name: add shell for capistrano user
+  become: yes
+  cron:
+    user: deploy
+    name: SHELL
+    env: yes
+    value: /bin/sh
+
+# Creates an entry like "PATH=/opt/bin" on top of crontab
+- name: add crontab path for capistrano user
+  become: yes
+  cron:
+    user: deploy
+    name: PATH
+    env: yes
+    value: /usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+    insertafter: SHELL

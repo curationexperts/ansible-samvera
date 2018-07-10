@@ -17,7 +17,7 @@
   # on Debian Jessie and certain minimal Ubuntu builds aptitude is not installed
   # without aptitude installed `apt-get upgrade` fails
   become: yes
-  package: name=aptitude state=installed
+  package: name=aptitude state=present
   when:
       (ansible_distribution == "Ubuntu") or
       (ansible_distribution == "Debian")

@@ -9,7 +9,7 @@
     name: sidekiq
     enabled: yes
 
-- name: start sidekiq system serverice
+- name: start sidekiq system service
   become: yes
   systemd:
     name: sidekiq

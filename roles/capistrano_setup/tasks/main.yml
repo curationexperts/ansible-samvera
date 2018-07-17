@@ -60,3 +60,7 @@
     env: yes
     value: /usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
     insertafter: SHELL
+
+- name: allow deploy user to restart apache2
+  become: yes
+  template: src=apache2.deploy.sudoers.j2 dest=/etc/sudoers.d/apache2-deploy-restart owner=root group=root backup=no

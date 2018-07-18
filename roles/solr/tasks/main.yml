@@ -64,3 +64,11 @@
   systemd:
     name: solr
     state: restarted
+
+- name: symlink solr logs to /var/log
+  become: yes
+  file:
+    src: "/var/solr/logs"
+    dest: "/var/log/solr"
+    state: link
+

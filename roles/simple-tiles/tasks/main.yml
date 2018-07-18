@@ -34,7 +34,7 @@
 - name: unzip simple-tiles source
   shell: tar zxvf v{{ simple_tiles_ver }}.tar.gz creates=simple-tiles-{{ simple_tiles_ver }} warn=no
   args:
-    chdir: gis_sources
+    chdir: "{{ gis_sources  }}"
 
 - name: configure simple-tiles
   shell: ./configure

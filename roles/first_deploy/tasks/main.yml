@@ -49,8 +49,8 @@
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
-- name: create deployment keypair for connection user
   # Set up a keypair so the ansible user can connect as the capistrano deploy user
+- name: create deployment keypair for connection user
   user:
       name: "{{ ansible_ssh_user }}"
       generate_ssh_key: yes

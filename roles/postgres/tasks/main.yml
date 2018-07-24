@@ -50,6 +50,10 @@
     regexp: '^local\s+all\s+all'
     line: 'local	all		all						md5'
 
+- name: create .pgpass for the system user to save them from typing passwords
+  become: yes
+  template: src=pgpass.j2 dest="/home/{{ system_user }}/.pgpass" owner="{{ system_user }}" group="{{ system_user }}" mode=0600
+
 - name: restart postgres server
   become: yes
   service: name=postgresql enabled=yes state=restarted

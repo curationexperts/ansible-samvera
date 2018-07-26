@@ -14,7 +14,7 @@ required to run a Hyrax-based repository, including:
 * ImageMagick and it's dependencies
 
 ## Prerequisites
-[Ansible](http://docs.ansible.com/intro_installation.html) 2.4 or above.
+Tested with [Ansible](http://docs.ansible.com/intro_installation.html) 2.5.4. Please note that ansible is *very* picky about version numbers. You will get better results if you use pip to install ansible. To upgrade do: `pip install ansible==2.5.4`
 
 ## Contributing
 Contributions are welcome in the form of issues (including bug reports, use cases) and pull requests.

@@ -11,14 +11,15 @@
         endscript
 }
 
-/opt/{{ project_name }}/log/production.log
+/opt/{{ project_name }}/shared/log/*.log
 {
-        copytruncate
-        daily
-        rotate 30
-        compress
-        missingok
-        create 0644 deploy deploy
+  daily
+  missingok
+  rotate 7
+  compress
+  delaycompress
+  notifempty
+  copytruncate
 }
 
 /var/log/mail.info

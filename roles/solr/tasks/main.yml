@@ -45,6 +45,23 @@
   become_user: solr
   shell: /opt/solr/bin/solr create -c {{ project_name }} -d basic_configs -p {{ solr_port }} creates=/var/solr/data/{{ project_name }}
 
+- name: configure solr loggers
+  become: yes
+  become_user: solr
+  copy:
+    src: log4j.properties
+    dest: /var/solr/log4j.properties
+    mode: 0640
+
+- name: put in place Solr limits.d configuration
+  become: yes
+  copy:
+    src: solr_limits.conf
+    dest: /etc/security/limits.d/solr.conf
+    owner: root
+    group: root
+    mode: 0644
+
 - name: Set JVM heap size
   become: yes
   lineinfile:

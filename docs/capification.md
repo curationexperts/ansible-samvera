@@ -12,6 +12,14 @@
     adapter: solr
     url: <%= ENV['SOLR_URL'] %>
 ```
+1. Edit `config/fedora.yml` to add the production fedora settings:
+```
+  production:
+    user: fedoraAdmin
+    password: <%= ENV['FEDORA_PASSWORD'] %>
+    url: <%= ENV['FEDORA_URL'] %>
+    base_path: /prod
+```
 1. Add these gems to your `Gemfile`, in the `:development` section:
   ```ruby
   gem 'capistrano'

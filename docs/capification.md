@@ -4,13 +4,13 @@
 1. Edit `config/solr.yml` to add the production solr url:
   ```ruby
     production:
-      url: http://127.0.0.1:8983/solr/mahonia
+    url: <%= ENV['SOLR_URL'] %>
   ```
 1. Edit `config/blacklight.yml` to add the production solr url:
 ```ruby
   production:
     adapter: solr
-    url: http://127.0.0.1:8983/solr/mahonia
+    url: <%= ENV['SOLR_URL'] %>
 ```
 1. Add these gems to your `Gemfile`, in the `:development` section:
   ```ruby
@@ -41,7 +41,7 @@
   * Add the `:application` name
   * Add the github `:repo_url`
   * Add this boilerplate, customizing as appropriate:
-  
+
   ```ruby
     set :deploy_to, '/opt/YOUR_PROJECT_NAME'
 
@@ -61,7 +61,7 @@
 
     append :linked_files, "config/database.yml"
     append :linked_files, "config/secrets.yml"
-    
+
     # We have to re-define capistrano-sidekiq's tasks to work with
     # systemctl in production. Note that you must clear the previously-defined
     # tasks before re-defining them.
@@ -86,7 +86,7 @@
       end
     end
   ```
-  
+
   Note: You do NOT want the `:passenger_restart_with_touch` option. This will prevent passenger from automatically restarting after you deploy. See https://github.com/capistrano/passenger#restarting-passenger--4033-applications
 1. Add this content to your `Capfile`:
   ```ruby

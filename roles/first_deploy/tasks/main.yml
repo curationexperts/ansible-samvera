@@ -75,15 +75,9 @@
   become: yes
   service: name=apache2 state=restarted
 
-- name: remove managed schema
-  become: yes
-  file:
-    path: /var/solr/data/{{ project_name }}/conf/managed_schema
-    state: absent
-
 - name: temporary symlink schema from git checkout to solr
   become: yes
-  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes
+  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/managed-schema state=link force=yes
 
 - name: temporary symlink solrconfig from git checkout to solr
   become: yes
@@ -98,13 +92,13 @@
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
-- name: symlink schema from code to solr
-  become: yes
-  file: src=/opt/{{ project_name }}/current/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes
-
 - name: symlink solrconfig from code to solr
   become: yes
   file: src=/opt/{{ project_name }}/current/solr/config/solrconfig.xml dest=/var/solr/data/{{ project_name }}/conf/solrconfig.xml state=link force=yes
+
+- name: symlink schema from code to solr
+  become: yes
+  file: src=/opt/{{ project_name }}/current/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/managed-schema state=link force=yes
 
 - name: restart solr
   become: true
@@ -113,10 +107,3 @@
 - name: restart apache to load newly configured passenger application
   become: yes
   service: name=apache2 state=restarted
-
-- name: ensure default admin set with rake
-  become: yes
-  become_user: deploy
-  shell: RAILS_ENV=production bundle exec rake hyrax:default_admin_set:create
-  args:
-    chdir: /opt/{{ project_name }}/current

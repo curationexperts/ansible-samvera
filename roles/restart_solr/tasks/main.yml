@@ -1,0 +1,14 @@
+# ROLE: restart solr
+# roles/restart_solr/tasks/main.yml
+#
+# Restarts essential services
+# Intended to be used after installing packages
+# at the end of the playbook
+# Usage:
+#    - { role: restart_solr }
+
+- name: restart solr
+  become: yes
+  service:
+    name: solr
+    state: restarted

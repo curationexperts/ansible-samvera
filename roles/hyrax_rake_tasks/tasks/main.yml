@@ -1,0 +1,22 @@
+---
+# ROLE: hyrax_rake_tasks
+# roles/hyrax_rake_tasks/tasks/main.yml
+#
+# When hyrax is first installed, there are a few rake tasks that must be run.
+# Usage:
+#    - { role: hyrax_rake_tasks, project_name: *required*, branch: <optional> }
+#
+
+- name: ensure default admin set with rake
+  become: yes
+  become_user: deploy
+  shell: RAILS_ENV=production bundle exec rake hyrax:default_admin_set:create
+  args:
+    chdir: /opt/{{ project_name }}/current
+
+- name: ensure default collection types
+  become: yes
+  become_user: deploy
+  shell: RAILS_ENV=production bundle exec rake hyrax:default_collection_types:create
+  args:
+    chdir: /opt/{{ project_name }}/current

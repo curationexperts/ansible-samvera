@@ -1,0 +1,15 @@
+# ROLE: restart apache
+# roles/restart_apache/tasks/main.yml
+#
+# Restarts essential services
+# Intended to be used after installing packages
+# at the end of the playbook
+# Usage:
+#    - { role: restart_apache }
+
+- name: restart apache
+  become: yes
+  service:
+    name: apache2
+    enabled: yes
+    state: restarted

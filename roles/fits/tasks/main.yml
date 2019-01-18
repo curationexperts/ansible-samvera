@@ -10,6 +10,11 @@
     fits_version: '1.4.0'
   when: fits_version is not defined
 
+- name: ensure fits_servlet_version is set
+  set_fact:
+    fits_servlet_version: '1.2.0'
+  when: fits_servlet_version is not defined
+
 - name: setup install directory
   set_fact:
     install_path: /home/{{ ansible_ssh_user }}/install
@@ -28,13 +33,18 @@
   become: yes
   package: name=unzip state=present
 
+- name: ensure fits installation directory exists
+  file:
+    path: '{{ install_path }}/fits-{{ fits_version}}'
+    state: directory
+
 - name: download fits zip version {{ fits_version }}
   become: yes
   get_url: url=https://github.com/harvard-lts/fits/releases/download/{{ fits_version }}/fits-{{ fits_version }}.zip owner={{ ansible_ssh_user }} dest={{ install_path }}/fits-{{ fits_version }}.zip
 
 - name: unpack fits
   become: yes
-  unarchive: src={{ install_path }}/fits-{{ fits_version }}.zip dest={{ install_path }}/fits-{{ fits_version }} creates={{ install_path }}/fits-{{ fits_version }}/fits.sh copy=no
+  unarchive: src={{ install_path }}/fits-{{ fits_version }}.zip dest={{ install_path }}/fits-{{ fits_version}} creates={{ install_path }}/fits-{{ fits_version }}/fits.sh copy=no
 
 - name: make fits executable
   become: yes
@@ -55,9 +65,55 @@
 - name: set FITS_HOME in fits-env.sh
   become: yes
   lineinfile: dest=/usr/local/lib/fits-{{ fits_version }}/fits-env.sh regexp=^FITS_HOME line=FITS_HOME="/usr/local/lib/fits-{{ fits_version }}" state=present
-  when: fits_version | match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
+  when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
 
 - name: symlink fits-env.sh alias
   become: yes
   file: src=/usr/local/lib/fits-{{ fits_version }}/fits-env.sh dest=/usr/local/bin/fits-env.sh state=link
-  when: fits_version | match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
+  when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
+
+- name: install servlet container package
+  become: yes
+  package: name=tomcat7 state=present
+
+- name: download fits servlet version {{ fits_servlet_version }}
+  become: yes
+  get_url:
+    url: 'https://projects.iq.harvard.edu/files/fits/files/fits-{{ fits_servlet_version }}.war'
+    owner: tomcat7
+    group: tomcat7
+    dest: '{{ install_path }}/fits-{{ fits_servlet_version }}.war'
+    checksum: 'sha256:{{ fits_servlet_checksum }}'
+    force: yes
+
+- name: copy over fits.war
+  become: yes
+  command: cp {{ install_path }}/fits-{{ fits_servlet_version }}.war /var/lib/tomcat7/webapps/fits-{{ fits_servlet_version }}.war
+
+- name: copy catalina properties
+  become: yes
+  template:
+    src: catalina.properties.j2
+    dest: /etc/tomcat7/catalina.properties
+    owner: tomcat7
+    group: tomcat7
+    backup: yes
+
+- name: set port for tomcat
+  become: yes
+  replace:
+    dest: /etc/tomcat7/server.xml
+    regexp: "8080"
+    replace: "{{ tomcat_port }}"
+
+- name: add log rotation for catalina.out (tomcat/fedora logs)
+  become: yes
+  template: src=logrotate-tomcat dest=/etc/logrotate.d/tomcat7 backup=yes
+
+- name: restart servlet
+  become: yes
+  service: name=tomcat7 enabled=yes state=restarted
+
+- name: check that fits-servlet is up
+  uri:
+    url: 'http://localhost:{{tomcat_port}}/fits-{{ fits_servlet_version}}/'

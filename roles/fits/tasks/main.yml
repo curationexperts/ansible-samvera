@@ -3,20 +3,25 @@
 #
 # Installs FITS (File Information Tool Set)
 # Usage:
-#    - { role: fits, fits_version: '0.8.4'  }
+#    - { role: fits, fits_version: '1.4.0'  }
 
 - name: ensure fits_version is set
   set_fact:
-    fits_version: '0.8.4'
+    fits_version: '1.4.0'
   when: fits_version is not defined
 
 - name: setup install directory
   set_fact:
     install_path: /home/{{ ansible_ssh_user }}/install
-    
+
 - name: ensure install directory exists
   file:
     path: '{{ install_path }}'
+    state: directory
+
+- name: ensure fits directory exists
+  file:
+    path: '{{ install_path }}/fits-{{ fits_version }}'
     state: directory
 
 - name: install zip utility
@@ -25,11 +30,11 @@
 
 - name: download fits zip version {{ fits_version }}
   become: yes
-  get_url: url=http://projects.iq.harvard.edu/files/fits/files/fits-{{ fits_version }}.zip owner={{ ansible_ssh_user }} group={{ ansible_ssh_user }} dest={{ install_path }}/fits-{{ fits_version }}.zip
+  get_url: url=https://github.com/harvard-lts/fits/releases/download/{{ fits_version }}/fits-{{ fits_version }}.zip owner={{ ansible_ssh_user }} group={{ ansible_ssh_user }} dest={{ install_path }}/fits-{{ fits_version }}.zip
 
 - name: unpack fits
   become: yes
-  unarchive: src={{ install_path }}/fits-{{ fits_version }}.zip dest={{ install_path }}/ creates={{ install_path }}/fits-{{ fits_version }}/fits.sh copy=no
+  unarchive: src={{ install_path }}/fits-{{ fits_version }}.zip dest={{ install_path }}/fits-{{ fits_version }} creates={{ install_path }}/fits-{{ fits_version }}/fits.sh copy=no
 
 - name: make fits executable
   become: yes
@@ -42,7 +47,7 @@
 - name: symlink fits alias
   become: yes
   file: src=/usr/local/lib/fits-{{ fits_version }}/fits.sh dest=/usr/local/bin/fits state=link
-  
+
 - name: symlink fits.sh alias
   become: yes
   file: src=/usr/local/lib/fits-{{ fits_version }}/fits.sh dest=/usr/local/bin/fits.sh state=link

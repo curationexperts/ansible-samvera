@@ -16,16 +16,16 @@
 
 - name: download solr checksum
   become: yes
-  get_url: url=http://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz.md5 dest={{ install_path }}/solr-{{ solr_version }}.tgz.md5 force=no
+  get_url: url=http://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz.sha512 dest={{ install_path }}/solr-{{ solr_version }}.tgz.sha512 force=no
 
 - name: read solr checksum
   become: yes
-  shell: awk '{print $1}' {{ install_path }}/solr-{{ solr_version }}.tgz.md5
-  register: solr_md5
+  shell: awk '{print $1}' {{ install_path }}/solr-{{ solr_version }}.tgz.sha512
+  register: solr_sha512
 
 - name: download solr tarball
   become: yes
-  get_url: url=http://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="md5:{{ solr_md5.stdout }}"
+  get_url: url=http://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="sha512:{{ solr_sha512.stdout }}"
 
 - name: untar solr tarball
   become: yes
@@ -43,7 +43,7 @@
 - name: create default collection
   become: yes
   become_user: solr
-  shell: /opt/solr/bin/solr create -c {{ project_name }} -d basic_configs -p {{ solr_port }} creates=/var/solr/data/{{ project_name }}
+  shell: /opt/solr/bin/solr create -c {{ project_name }} -d _default -p {{ solr_port }} creates=/var/solr/data/{{ project_name }}
 
 - name: configure solr loggers
   become: yes
@@ -88,4 +88,3 @@
     src: "/var/solr/logs"
     dest: "/var/log/solr"
     state: link
-

@@ -9,12 +9,12 @@
 
 - name: create gis sources dir
   become: yes
-  file: owner={{ ansible_ssh_user }} group={{ ansible_ssh_user }} state=directory path=/home/{{ ansible_ssh_user }}/gis_sources
+  file: owner={{ ansible_ssh_user }} state=directory path=/home/{{ ansible_ssh_user }}/gis_sources
 
 - name: set gis sources dir
   set_fact:
     gis_sources: /home/{{ ansible_ssh_user }}/gis_sources
-    
+
 # - name: Install GDAL and required packages
 - name: Install geo_works required packages
   become: yes

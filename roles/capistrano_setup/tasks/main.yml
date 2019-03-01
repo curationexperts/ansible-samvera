@@ -64,3 +64,10 @@
 - name: allow deploy user to restart apache2
   become: yes
   template: src=apache2.deploy.sudoers.j2 dest=/etc/sudoers.d/apache2-deploy-restart owner=root group=root backup=no
+
+- name: add www-data user to deploy group
+  become: yes
+  user:
+    name: www-data
+    groups: deploy
+    append: yes

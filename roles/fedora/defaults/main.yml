@@ -4,9 +4,9 @@
 # tomcat PermGen memory (for loading java classes, etc.)
 tomcat_permgen_memory: 128M
 # tomcat min memory allocation
-tomcat_min_memory: 512m
+tomcat_min_memory: 1024m
 # tomcat max memory allocation
-tomcat_max_memory: 4096m
+tomcat_max_memory: 2048m
 
 fedora_config_file: /etc/default/tomcat7
 

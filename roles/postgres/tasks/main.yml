@@ -64,3 +64,17 @@
 - name: add samvera user
   postgresql_user: db={{ project_name }} name={{ db_user }} password={{ db_pass }} priv=ALL state=present login_user=postgres login_password={{ postgres_pass }}
 
+- name: create postgres service directory
+  become: yes
+  file: owner=root group=root state=directory path=/etc/systemd/system/postgresql.service.d/
+
+- name: ensure postgres starts before apache2
+  become: yes
+  template: src=override.conf dest=/etc/systemd/system/postgresql.service.d/override.conf owner=root group=root mode=0755
+
+- name: enable postgresql system service and restart systemd daemon
+  become: yes
+  systemd:
+    name: postgresql
+    enabled: yes
+    daemon_reload: yes

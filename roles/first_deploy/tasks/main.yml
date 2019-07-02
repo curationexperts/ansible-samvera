@@ -45,6 +45,7 @@
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
 - name: install gems (bundle install)
+  become: yes
   shell: bundle install
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}

@@ -3,7 +3,6 @@
   become: yes
   template: src=sidekiq.service.j2 dest=/lib/systemd/system/sidekiq.service owner=root group=root backup=no
 
-
 - name: enable redis system service
   become: yes
   systemd:
@@ -21,6 +20,7 @@
   systemd:
     name: sidekiq
     enabled: yes
+    daemon_reload: yes
 
 - name: start sidekiq system service
   become: yes

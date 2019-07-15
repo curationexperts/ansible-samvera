@@ -12,11 +12,11 @@
   service:
     name: solr
     state: restarted
-    
+
 - name: restart fedora
   become: yes
   service:
-    name: tomcat7
+    name: tomcat8
     enabled: yes
     state: restarted
 

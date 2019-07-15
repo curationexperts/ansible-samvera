@@ -8,7 +8,7 @@ tomcat_min_memory: 1024m
 # tomcat max memory allocation
 tomcat_max_memory: 2048m
 
-fedora_config_file: /etc/default/tomcat7
+fedora_config_file: /etc/default/tomcat8
 
 fedora_version: 4.7.5
 fedora_database: jdbc-postgresql

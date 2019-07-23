@@ -17,7 +17,7 @@
   become: yes
   gem: name=passenger user_install=no state=present version={{ passenger_ver }}
 
-- name: install apache packages for Ubuntu 16
+- name: install apache packages for Ubuntu 18.04
   become: yes
   package: name={{ item }} state=present
   with_items:
@@ -42,6 +42,22 @@
     line: PassengerAllowEncodedSlashes on
     insertbefore: </IfModule>
 
+- name: Set Passenger Instance Registry Directory in passenger.conf
+  become: yes
+  lineinfile:
+    dest: /etc/apache2/conf-enabled/passenger.conf
+    line: "  PassengerInstanceRegistryDir {{ passenger_inst_reg_dir }}"
+    insertbefore: </IfModule>
+    state: present
+
+- name: Put in place Passenger Instance Registry Directory environment variable
+  become: yes
+  lineinfile:
+    dest: /etc/profile
+    regexp: "^(export PASSENGER_INSTANCE_REGISTRY_DIR=)"
+    state: present
+    line: "export PASSENGER_INSTANCE_REGISTRY_DIR={{ passenger_inst_reg_dir }}"
+
 - name: remove default apache site
   become: yes
   file: path=/etc/apache2/sites-enabled/000-default.conf state=absent
@@ -49,3 +65,10 @@
 - name: enable rewrite module
   become: yes
   command: a2enmod rewrite
+
+- name: restart apache
+  become: yes
+  service:
+    name: apache2
+    enabled: yes
+    state: restarted

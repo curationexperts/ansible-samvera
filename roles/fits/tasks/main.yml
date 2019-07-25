@@ -1,9 +1,10 @@
 # ROLE: fits
 # roles/fits/tasks/main.yml
 #
-# Installs FITS (File Information Tool Set)
+# Installs FITS (File Information Tool Set) both as a standalone toolkit and as a servlet.
 # Usage:
-#    - { role: fits, fits_version: '1.4.0'  }
+#    - { role: fits, fits_version: '1.4.0', fits_servlet_version: '1.2.0' }
+# Note that if you don't specify the fits_servlet_version the last step might fail for unknown reasons.
 
 - name: ensure fits_version is set
   set_fact:

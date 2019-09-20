@@ -42,6 +42,12 @@
     line: PassengerAllowEncodedSlashes on
     insertbefore: </IfModule>
 
+- name: Ensure Passenger Instance Registry Directory exists
+  become: yes
+  file:
+    path: '{{ passenger_inst_reg_dir }}'
+    state: directory
+
 - name: Set Passenger Instance Registry Directory in passenger.conf
   become: yes
   lineinfile:

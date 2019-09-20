@@ -14,6 +14,10 @@
     - python-psycopg2
   notify:
 
+- name: install psycopg2 python module
+  become: yes
+  pip: name=psycopg2
+
 - name: create db_backups directory
   become: yes
   file: owner=postgres group=postgres state=directory path=/opt/pg_backups

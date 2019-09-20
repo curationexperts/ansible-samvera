@@ -11,14 +11,4 @@
     - python-setuptools
     - python-dev
     - build-essential
-
-- name: install pip
-  become: yes
-  easy_install:
-    name: pip
-    state: latest
-
-- name: install pexpect for interactive commands
-  become: yes
-  pip:
-    name: pexpect
+    - python3-pip

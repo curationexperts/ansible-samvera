@@ -26,6 +26,10 @@
     - libaprutil1-dev
     - apache2-dev
 
+- name: ensure directory for passenger temp files persists across reboots
+  become: yes
+  template: src=passenger_tmpfiles.j2 dest=/usr/lib/tmpfiles.d/passenger.conf owner=root group=root backup=no
+
 - name: install passenger-install-apache2-module
   become: yes
   shell: passenger-install-apache2-module --auto creates={{ system_gem_path.stdout }}/gems/passenger-{{ passenger_ver }}/buildout/apache2/mod_passenger.so

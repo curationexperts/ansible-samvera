@@ -57,10 +57,46 @@
   become: yes
   copy:
     src: solr_limits.conf
-    dest: /etc/security/limits.d/solr.conf
+    dest: /etc/security/limits.conf
     owner: root
     group: root
     mode: 0644
+
+# See https://superuser.com/questions/1200539/cannot-increase-open-file-limit-past-4096-ubuntu
+- name: Increase max open files in user.conf
+  become: yes
+  lineinfile:
+    path: /etc/systemd/user.conf
+    state: present
+    regexp: DefaultLimitNOFILE
+    line: DefaultLimitNOFILE=65535
+
+# See https://superuser.com/questions/1200539/cannot-increase-open-file-limit-past-4096-ubuntu
+- name: Increase max processes in user.conf
+  become: yes
+  lineinfile:
+    path: /etc/systemd/user.conf
+    state: present
+    regexp: DefaultLimitNPROC
+    line: DefaultLimitNPROC=65535
+
+# See https://superuser.com/questions/1200539/cannot-increase-open-file-limit-past-4096-ubuntu
+- name: Increase max open files in system.conf
+  become: yes
+  lineinfile:
+    path: /etc/systemd/system.conf
+    state: present
+    regexp: DefaultLimitNOFILE
+    line: DefaultLimitNOFILE=65535
+
+# See https://superuser.com/questions/1200539/cannot-increase-open-file-limit-past-4096-ubuntu
+- name: Increase max processes in system.conf
+  become: yes
+  lineinfile:
+    path: /etc/systemd/system.conf
+    state: present
+    regexp: DefaultLimitNPROC
+    line: DefaultLimitNPROC=65535
 
 - name: Set JVM heap size
   become: yes

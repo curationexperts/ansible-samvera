@@ -68,6 +68,27 @@
       user: deploy
       key: "{{ public_key.content | b64decode }}"
 
+
+- name: ensure ansible user is in the deploy group
+  become: yes
+  user:
+    append: yes
+    group: deploy
+    name: "{{ ansible_ssh_user }}"
+
+- name: ensure ansible user can write to capistrano log and it exists
+  become: yes
+  file:
+    path: /home/{{ ansible_ssh_user }}/{{ project_name }}/log/capistrano.log
+    owner: "{{ansible_ssh_user}}"
+    mode: '0775'
+    state: touch
+
+- name: install sidekiq systemd user service for deploy user
+  shell: BRANCH={{ branch | default('master') }} cap localhost sidekiq:install
+  args:
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
+
 - name: create apache vhosts file
   become: yes
   template: src=apache_vhost.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}.conf owner=root group=root backup=no
@@ -94,6 +115,11 @@
 
 - name: deploy to production directories with capistrano
   shell: BRANCH={{ branch | default('master') }} cap localhost deploy
+  args:
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
+
+- name: install sidekiq systemd user service for deploy user
+  shell: BRANCH={{ branch | default('master') }} cap localhost sidekiq:install
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 

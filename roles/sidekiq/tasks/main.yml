@@ -1,8 +1,3 @@
----
-- name: create sidekiq system service
-  become: yes
-  template: src=sidekiq.service.j2 dest=/lib/systemd/system/sidekiq.service owner=root group=root backup=no
-
 - name: enable redis system service
   become: yes
   systemd:
@@ -14,20 +9,3 @@
   systemd:
     name: redis
     state: started
-
-- name: enable sidekiq system service
-  become: yes
-  systemd:
-    name: sidekiq
-    enabled: yes
-    daemon_reload: yes
-
-- name: start sidekiq system service
-  become: yes
-  systemd:
-    name: sidekiq
-    state: started
-
-- name: allow deploy user to restart sidekiq
-  become: yes
-  template: src=sidekiq.sudoers.j2 dest=/etc/sudoers.d/sidekiq-restart-users owner=root group=root backup=no

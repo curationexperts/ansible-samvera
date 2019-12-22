@@ -61,7 +61,7 @@ Here is an example playbook that uses these roles (plus a few extra internal-to-
     - { role: nrpe, nrpe_version: '3.1.1', nagios_plugins_version: '2.2.1' }
     - { role: ruby, ruby_version: '2.4.2', ruby_sha_256: '93b9e75e00b262bc4def6b26b7ae8717efc252c47154abb7392e54357e6c8c9c' }
     - { role: postgres }
-    - { role: fedora, fedora_version: '4.7.5' }
+    - { role: fedora }
     - { role: solr, solr_version: '6.6.2' }
     - { role: pip }
     - { role: fits, fits_version: '0.8.4' }
@@ -79,3 +79,6 @@ Here is an example playbook that uses these roles (plus a few extra internal-to-
     - { role: restart }
     - { role: splunkuforwarder }
 ```
+
+An observation for minimal test installs: these packages install successfully on an AWS ubuntu server with 4 
+gigabytes of RAM (t3a.medium), but not on one with 1 gigabyte of RAM (a free tier "micro" server).

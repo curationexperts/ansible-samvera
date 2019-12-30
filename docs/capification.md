@@ -27,7 +27,7 @@
     gem 'capistrano-ext'
     gem 'capistrano-passenger'
     gem 'capistrano-rails'
-    gem 'capistrano-sidekiq'
+    gem 'capistrano-sidekiq', '~> 1.0.3'
     ```
   Add these to your top level Gemfile section if they aren't there yet:
     ```ruby

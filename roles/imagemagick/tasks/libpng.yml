@@ -8,7 +8,7 @@
 
 - name: check alternate libpng download source .../older-releases if needed
   get_url:
-    url: http://downloads.sourceforge.net/project/libpng/libpng16/older-releases/{{ libpng_ver }}/libpng-{{ libpng_ver }}.tar.gz
+    url: http://downloads.sourceforge.net/project/libpng/libpng16/{{ libpng_ver }}/libpng-{{ libpng_ver }}.tar.gz
     dest: "imagemagick_sources/libpng-{{ libpng_ver }}.tar.gz"
     force: no
 

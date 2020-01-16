@@ -84,11 +84,6 @@
     mode: '0775'
     state: touch
 
-- name: install sidekiq systemd user service for deploy user
-  shell: BRANCH={{ branch | default('master') }} cap localhost sidekiq:install
-  args:
-    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
-
 - name: create apache vhosts file
   become: yes
   template: src=apache_vhost.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}.conf owner=root group=root backup=no

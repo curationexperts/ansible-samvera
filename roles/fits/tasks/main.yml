@@ -38,21 +38,23 @@
     path: '{{ install_path }}/fits-{{ fits_version}}'
     state: directory
 
+# Ad-hoc change: this is where ancient versions like 0.8.4 are
 - name: download fits zip version {{ fits_version }}
   become: yes
-  get_url: url=https://github.com/harvard-lts/fits/releases/download/{{ fits_version }}/fits-{{ fits_version }}.zip owner={{ ansible_ssh_user }} dest={{ install_path }}/fits-{{ fits_version }}.zip
+  get_url: url=https://projects.iq.harvard.edu/files/fits/files/fits-{{ fits_version }}.zip owner={{ ansible_ssh_user }} dest={{ install_path }}/fits-{{ fits_version }}.zip
 
 - name: unpack fits
   become: yes
   unarchive: src={{ install_path }}/fits-{{ fits_version }}.zip dest={{ install_path }}/fits-{{ fits_version}} creates={{ install_path }}/fits-{{ fits_version }}/fits.sh copy=no
 
+# Ad-hoc change: different dir structure for ancient versions like 0.8.4
 - name: make fits executable
   become: yes
-  file: path={{ install_path }}/fits-{{ fits_version }}/fits.sh mode=0755
+  file: path={{ install_path }}/fits-{{ fits_version }}/fits-{{ fits_version }}/fits.sh mode=0755
 
 - name: copy fits scripts
   become: yes
-  shell: cp -r {{ install_path }}/fits-{{ fits_version }} /usr/local/lib/ creates=/usr/local/lib/fits-{{ fits_version }}
+  shell: cp -r {{ install_path }}/fits-{{ fits_version }}/fits-{{ fits_version }} /usr/local/lib/ creates=/usr/local/lib/fits-{{ fits_version }}
 
 - name: symlink fits alias
   become: yes

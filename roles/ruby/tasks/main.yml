@@ -65,7 +65,7 @@
 
   - name: install ruby
     become: yes
-    shell: cd {{ install_path }}/ruby-{{ ruby_version}} && make install creates=/usr/local/bin/ruby
+    shell: cd {{ install_path }}/ruby-{{ ruby_version}} && make install
   #when applied to each of the tasks in the block above
   when: ruby_preinstalled.failed
 

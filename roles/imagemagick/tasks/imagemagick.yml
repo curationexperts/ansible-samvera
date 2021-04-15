@@ -1,7 +1,7 @@
 ---
 
 - name: fetch imagemagick version archive list
-  shell: curl http://www.imagemagick.org/download/releases/ | grep '{{ imagemagick_ver }}'
+  shell: curl https://download.imagemagick.org/ImageMagick/download/releases/ | grep '{{ imagemagick_ver }}'
   register: imagemagick_archive_info
 
 - name: read patch-level from archive results
@@ -12,8 +12,7 @@
   # generate the download link for the release following the pattern
   # http://www.imagemagick.org/download/releases/ImageMagick-7.0.3-10.tar.xz
   set_fact:
-    imagemagick_url: "http://www.imagemagick.org/download/releases/{{ imagemagick_archive_info.stdout | regex_search('ImageMagick-.+\\.tar\\.xz') }}"
-
+    imagemagick_url: "https://download.imagemagick.org/ImageMagick/download/releases/{{ imagemagick_archive_info.stdout | regex_search('ImageMagick-.+?\\.tar\\.xz') }}"
 - name: display imagemagick source info
   debug:
     msg: "Installing version {{ imagemagick_patchlevel }} from {{ imagemagick_url }}"

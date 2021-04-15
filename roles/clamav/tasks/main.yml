@@ -6,6 +6,21 @@
 # by default, ubuntu sets clamav and freshclam to run in daemon mode
 # with virus definitions updated hourly
 
+- name: install dependencies for clamav
+  package: name={{ item }} state=present
+  become: yes
+  with_items:
+    - openssl
+    - libssl-dev
+    - libcurl4-openssl-dev
+    - zlib1g-dev
+    - libpng-dev
+    - libxml2-dev
+    - libjson-c-dev
+    - libbz2-dev
+    - libpcre2-dev
+    - ncurses-dev
+
 - name: install clamav packages for Debian based systems
   package: name={{ item }} state=present
   become: yes

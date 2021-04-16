@@ -31,3 +31,7 @@
     - clamav-daemon
     - clamav-freshclam
   when: ansible_distribution == 'Ubuntu' or ansible_distribution == 'Debian'
+
+- name: update clamav database
+  become: yes
+  shell: systemctl stop clamav-freshclam && freshclam -F

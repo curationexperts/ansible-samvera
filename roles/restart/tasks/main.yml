@@ -26,3 +26,17 @@
     name: apache2
     enabled: yes
     state: restarted
+
+- name: restart clamav
+  become: yes
+  service:
+    name: clamav-daemon
+    enabled: yes
+    state: restarted
+
+- name: restart freshclam
+  become: yes
+  service:
+    name: clamav-freshclam
+    enabled: yes
+    state: restarted

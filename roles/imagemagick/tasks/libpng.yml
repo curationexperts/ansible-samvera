@@ -1,14 +1,14 @@
 ---
 - name: download libpng source
   get_url:
-    url: http://downloads.sourceforge.net/project/libpng/libpng16/{{ libpng_ver }}/libpng-{{ libpng_ver }}.tar.gz
+    url: https://downloads.sourceforge.net/project/libpng/libpng16/{{ libpng_ver }}/libpng-{{ libpng_ver }}.tar.gz
     dest: "imagemagick_sources/libpng-{{ libpng_ver }}.tar.gz"
     force: no
   ignore_errors: yes  # if this download fails, drop through to the alternate download path below
 
 - name: check alternate libpng download source .../older-releases if needed
   get_url:
-    url: http://downloads.sourceforge.net/project/libpng/libpng16/{{ libpng_ver }}/libpng-{{ libpng_ver }}.tar.gz
+    url: https://downloads.sourceforge.net/project/libpng/libpng16/{{ libpng_ver }}/libpng-{{ libpng_ver }}.tar.gz
     dest: "imagemagick_sources/libpng-{{ libpng_ver }}.tar.gz"
     force: no
 

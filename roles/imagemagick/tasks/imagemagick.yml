@@ -32,19 +32,22 @@
   shell: ./configure
   args:
     chdir: imagemagick_sources/ImageMagick-{{ imagemagick_patchlevel }}
+    creates: ./config.status
 
 - name: make imagemagick
   shell: make
   args:
     chdir: imagemagick_sources/ImageMagick-{{ imagemagick_patchlevel }}
+    creates: ./utilities/magick
 
 - name: install imagemagick {{ imagemagick_patchlevel }}
   become: yes
   shell: make install
   args:
     chdir: imagemagick_sources/ImageMagick-{{ imagemagick_patchlevel }}
+    creates: /usr/local/bin/magick
 
-- name: link new ImageMagick
+- name: refresh ld cache
   become: yes
   shell: ldconfig /usr/local/lib
   args:

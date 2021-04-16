@@ -1,7 +1,7 @@
 ---
 - name: download openjpg source
   get_url:
-    url: http://downloads.sourceforge.net/project/openjpeg.mirror/{{ openjpg_ver }}/openjpeg-{{ openjpg_ver }}.tar.gz
+    url: https://downloads.sourceforge.net/project/openjpeg.mirror/{{ openjpg_ver }}/openjpeg-{{ openjpg_ver }}.tar.gz
     dest: "imagemagick_sources/openjpeg-{{ openjpg_ver }}.tar.gz"
     force: no
 

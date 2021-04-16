@@ -1,11 +1,11 @@
 # Ansible created this file and made a timestamped backup of the original
 # This template will construct settings that look something like
-# TOMCAT8_USER=tomcat8
+# TOMCAT8_USER=tomcat9
 # or
 # TOMCAT_GROUP=tomcat
-TOMCAT8_USER=tomcat8
-TOMCAT8_GROUP=tomcat8
-# JAVA_OPTS="-Dfcrepo.home=/opt/fedora-data -Dfcrepo.modeshape.configuration=classpath:/config/{{ fedora_database }}/repository.json -Djava.awt.headless=true -XX:+UseG1GC -XX:+UseCompressedOops -XX:-UseLargePagesIndividualAllocation -XX:MaxPermSize={{ tomcat_permgen_memory }} -Xms{{ tomcat_min_memory }} -Xmx{{ tomcat_max_memory }} -Djava.util.logging.config.file=/etc/tomcat8/logging.properties -server"
+TOMCAT9_USER=tomcat9
+TOMCAT9_GROUP=tomcat9
+# JAVA_OPTS="-Dfcrepo.home=/opt/fedora-data -Dfcrepo.modeshape.configuration=classpath:/config/{{ fedora_database }}/repository.json -Djava.awt.headless=true -XX:+UseG1GC -XX:+UseCompressedOops -XX:-UseLargePagesIndividualAllocation -XX:MaxPermSize={{ tomcat_permgen_memory }} -Xms{{ tomcat_min_memory }} -Xmx{{ tomcat_max_memory }} -Djava.util.logging.config.file=/etc/tomcat9/logging.properties -server"
 
 JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.home=/opt/fedora-data"
 JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.modeshape.configuration=classpath:/config/jdbc-postgresql/repository.json"
@@ -20,5 +20,5 @@ JAVA_OPTS="${JAVA_OPTS} -XX:-UseLargePagesIndividualAllocation"
 JAVA_OPTS="${JAVA_OPTS} -XX:MaxPermSize={{ tomcat_permgen_memory }}"
 JAVA_OPTS="${JAVA_OPTS} -Xms{{ tomcat_min_memory }}"
 JAVA_OPTS="${JAVA_OPTS} -Xmx{{ tomcat_max_memory }}"
-JAVA_OPTS="${JAVA_OPTS} -Djava.util.logging.config.file=/etc/tomcat8/logging.properties"
+JAVA_OPTS="${JAVA_OPTS} -Djava.util.logging.config.file=/etc/tomcat9/logging.properties"
 JAVA_OPTS="${JAVA_OPTS} -server"

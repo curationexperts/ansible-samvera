@@ -1,0 +1,66 @@
+# This role installs collectd and configures it to transmit data to a splunk cloud account
+# Add splunk_authorization and splunk_url to vars, e.g.
+# Usage:
+# vars:
+#   splunk_authorization: 'YOUR_KEY_HERE'
+#   splunk_url: 'https://YOUR_INSTANCE_HERE.cloud.splunk.com:8088/services/collector/raw'
+# roles:
+#   - { role: collectd, collectd_version: 5.10.0 }
+---
+- name: install prerequisites for collectd
+  become: yes
+  package: name={{ item }} state=present
+  with_items:
+    - libcurl4-openssl-dev
+
+- name: setup install directory
+  set_fact:
+    install_path: /home/{{ ansible_ssh_user }}/install
+
+- name: ensure install directory exists
+  file:
+    path: '{{ install_path }}'
+    state: directory
+
+- name: download collectd source
+  get_url:
+    url: https://storage.googleapis.com/collectd-tarballs/collectd-{{ collectd_version }}.tar.bz2
+    dest: "{{ install_path }}/collectd-{{ collectd_version }}.tar.bz2"
+    force: no
+
+- name: unzip collectd source
+  shell: tar xf collectd-{{ collectd_version }}.tar.bz2 creates=collectd-{{ collectd_version }} warn=no
+  args:
+    chdir: '{{ install_path }}'
+
+- name: prepare to compile collectd
+  shell: ./configure
+  args:
+    chdir: '{{ install_path }}/collectd-{{ collectd_version }}'
+
+- name: make collectd
+  become: yes
+  shell: make all install
+  args:
+    chdir: '{{ install_path }}/collectd-{{ collectd_version }}'
+
+- name: configure collectd
+  become: yes
+  template: src=collectd.conf.j2 dest=/opt/collectd/etc/collectd.conf owner=root group=root backup=no
+
+- name: create collectd system service
+  become: yes
+  template: src=collectd.service.j2 dest=/lib/systemd/system/collectd.service owner=root group=root backup=no
+
+- name: enable collectd system service
+  become: yes
+  systemd:
+    name: collectd
+    enabled: yes
+    daemon_reload: yes
+
+- name: start collectd system service
+  become: yes
+  systemd:
+    name: collectd
+    state: started

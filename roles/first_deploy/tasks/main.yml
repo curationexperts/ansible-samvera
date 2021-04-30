@@ -40,7 +40,7 @@
       dest: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
 - name: checkout branch
-  shell: git checkout {{ branch | default('master') }}
+  shell: git checkout {{ branch | default('main') }}
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
@@ -50,12 +50,15 @@
     name: ed25519
     version: 1.2.4
     state: present
+    user_install: yes
+
 - name: install bcrypt_pbkdf support
   become: yes
   gem:
     name: bcrypt_pbkdf
     version: 1.1.0
     state: present
+    user_install: yes
 
 - name: install gems (bundle install)
   become: yes

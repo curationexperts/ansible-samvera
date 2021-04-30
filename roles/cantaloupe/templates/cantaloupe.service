@@ -1,0 +1,13 @@
+# systemd service for managing cantaloupe iiif server
+
+[Unit]
+Description=Cantaloupe IIIF server
+
+[Service]
+Type=simple
+ExecStart=/bin/bash -c "/usr/bin/java -Dcantaloupe.config=/opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe.properties -Xmx6g -jar /opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe-{{ cantaloupe_version }}.war"
+User=cantaloupe
+SyslogIdentifier=cantaloupe
+
+[Install]
+WantedBy=multi-user.target

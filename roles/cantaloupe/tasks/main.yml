@@ -1,0 +1,88 @@
+---
+- name: create cantaloupe group
+  become: yes
+  group: name=cantaloupe
+
+- name: create cantaloupe user
+  become: yes
+  user: name=cantaloupe group=cantaloupe shell=/bin/bash createhome=yes state=present
+
+- name: setup install directory
+  set_fact:
+    install_path: /home/{{ ansible_ssh_user }}/install
+
+- name: ensure install directory exists
+  file:
+    path: '{{ install_path }}'
+    state: directory
+
+- name: download cantaloupe zip
+  get_url:
+    url: "https://github.com/cantaloupe-project/cantaloupe/releases/download/v{{ cantaloupe_version }}/cantaloupe-{{ cantaloupe_version}}.zip"
+    dest: '{{ install_path }}/cantaloupe-{{ cantaloupe_version }}.zip'
+    force: no
+
+- name: unzip cantaloupe zipfile
+  become: yes
+  unarchive:
+    remote_src: yes
+    src: '{{ install_path }}/cantaloupe-{{ cantaloupe_version }}.zip'
+    dest: /opt
+    creates: /opt/cantaloupe-{{ cantaloupe_version }}
+    owner: cantaloupe
+    group: cantaloupe
+
+- name: ensure cantaloupe temp directory exists
+  become: yes
+  file:
+    path: /opt/cantaloupe-temp
+    state: directory
+    owner: cantaloupe
+    group: cantaloupe
+
+- name: ensure cantaloupe log directory exists
+  become: yes
+  file:
+    path: "{{ cantaloupe_log_dir }}"
+    state: directory
+    owner: cantaloupe
+    group: cantaloupe
+
+- name: ensure directory for cantaloupe log files persists across reboots
+  become: yes
+  template: src=logdir.j2 dest=/usr/lib/tmpfiles.d/cantaloupe.conf owner=root group=root backup=no
+
+- name: write cantaloupe config file
+  become: yes
+  template:
+    src: cantaloupe.properties
+    dest: /opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe.properties
+    owner: cantaloupe
+    group: cantaloupe
+    mode: 0644
+
+- name: write cantaloupe custom delegate script
+  become: yes
+  template:
+    src: delegates.rb
+    dest: /opt/cantaloupe-{{ cantaloupe_version }}/delegates.rb
+    owner: cantaloupe
+    group: cantaloupe
+    mode: 0644
+
+- name: write cantaloupe service file
+  become: yes
+  template:
+    src: cantaloupe.service
+    dest: /lib/systemd/system
+    owner: root
+    group: root
+    mode: 0644
+
+- name: enable cantaloupe service in systemctl
+  become: yes
+  shell: systemctl enable cantaloupe.service
+
+- name: (re)start cantaloupe
+  become: yes
+  shell: systemctl restart cantaloupe.service

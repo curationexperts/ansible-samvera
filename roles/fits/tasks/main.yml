@@ -91,14 +91,6 @@
   become: yes
   command: cp {{ install_path }}/fits-{{ fits_servlet_version }}.war /var/lib/tomcat9/webapps/fits-{{ fits_servlet_version }}.war
 
-- name: copy catalina properties
-  become: yes
-  template:
-    src: catalina.properties.j2
-    dest: /etc/tomcat9/catalina.properties
-    owner: tomcat
-    group: tomcat
-    backup: yes
 - name: copy context file
   become: yes
   template:

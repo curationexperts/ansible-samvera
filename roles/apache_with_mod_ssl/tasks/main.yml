@@ -1,6 +1,7 @@
 ---
 # Role: apache_with_mod_ssl
 # roles/apache_with_mod_ssl/tasks/main.yml
+# Predominantly used for standalone Cantaloupe builds or when running all ssl roles
 #
 # Installs Apache
 #

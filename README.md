@@ -52,7 +52,6 @@ Here is an example playbook that uses these roles (plus a few extra internal-to-
     postgres_pass: 'whatever'
   roles:
     - { role: packages }
-    - { role: capybara-webkit }
     - { role: set_timezone, timezone: America/Chicago }
     - { role: set_hostname, hostname: stage-demo }
     - { role: sshd_config }

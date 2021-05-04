@@ -46,6 +46,10 @@
   command: cp {{ install_path }}/fcrepo-webapp-{{ fedora_version }}.war /var/lib/tomcat9/webapps/fedora.war
   when: fedora_war.stat.exists == False
 
+- name: create systemd configuration
+  become: yes
+  template: src=tomcat9.service dest=/lib/systemd/system/tomcat9.service backup=yes
+
 - name: create tomcat config and java options
   become: yes
   template:
@@ -68,4 +72,4 @@
 
 - name: restart servlet
   become: yes
-  service: name=tomcat9 enabled=yes state=restarted
+  systemd: name=tomcat9 state=restarted daemon_reload=yes

@@ -60,6 +60,48 @@
     state: present
     user_install: yes
 
+- name: find bundler version from Gemfile.lock
+  shell: grep -A 1 "BUNDLED WITH" Gemfile.lock
+  args:
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
+  register: bundler_version_phrase
+
+- name: set bundler version from Gemfile.lock
+  set_fact:
+    bundler_version: "{{ bundler_version_phrase.stdout | regex_replace('BUNDLED WITH\n   (.*)', '\\1') }}"
+
+- name: display bundler version
+  debug:
+    msg: "{{ bundler_version }}"
+
+- name: check if bundler {{ bundler_version }} is installed
+  shell: bundler --version | grep {{ bundler_version }}
+  ignore_errors: true
+  register: bundler_preinstalled
+
+- name: install bundler if it-s not already there
+  block:
+    # bundler is a system gem in ruby 2.6 and later, so need to move it in order to
+    # uninstall default bundler and install project bundler
+
+    - name: set Gem default directory
+      shell: ruby -e 'puts Gem.default_dir'
+      register: gem_directory
+
+    - name: move system bundler
+      become: yes
+      shell: mv -v "{{ gem_directory.stdout }}"/specifications/default/bundler-*.gemspec "{{ gem_directory.stdout }}"/specifications/
+      ignore_errors: true
+
+    - name: remove system bundler
+      become: yes
+      shell: y | gem uninstall bundler --force
+
+    - name: install project bundler
+      become: yes
+      shell: gem install bundler -v "{{ bundler_version }}"
+  when: bundler_preinstalled.failed
+
 - name: install gems (bundle install)
   become: yes
   shell: bundle install
@@ -89,7 +131,7 @@
   become: yes
   user:
     append: yes
-    group: deploy
+    groups: deploy
     name: "{{ ansible_ssh_user }}"
 
 - name: ensure ansible user can write to capistrano log and it exists

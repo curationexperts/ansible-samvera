@@ -9,6 +9,7 @@
   package: name={{ item }} state=present
   become: yes
   with_items:
+    - acl
     - postgresql
     - libpq-dev
     - python3-psycopg2

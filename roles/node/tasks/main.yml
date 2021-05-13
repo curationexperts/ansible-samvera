@@ -1,5 +1,25 @@
+- name: Download node.js installation script
+  get_url:
+    url: 'https://deb.nodesource.com/setup_10.x'
+    dest: /home/{{ ansible_ssh_user }}/nodesource_setup.sh
+
+- name: make node script exectuable
+  file: dest=/home/{{ ansible_ssh_user}}/nodesource_setup.sh mode=a+x
+#
+- name: Run the nodesource setup script
+  become: true
+  command: sh /home/{{ ansible_ssh_user }}/nodesource_setup.sh
+
+- name: remove exisiting package
+  become: true
+  apt:
+    name: nodejs
+    state: absent
+    purge: true
+
 - name: update and install nodejs
   become: true
   apt:
-    name: node-yarn
+    name: nodejs
     state: present
+    update_cache: true

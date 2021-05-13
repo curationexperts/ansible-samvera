@@ -5,7 +5,7 @@
 
 - name: make node script exectuable
   file: dest=/home/{{ ansible_ssh_user}}/nodesource_setup.sh mode=a+x
-#
+
 - name: Run the nodesource setup script
   become: true
   command: sh /home/{{ ansible_ssh_user }}/nodesource_setup.sh

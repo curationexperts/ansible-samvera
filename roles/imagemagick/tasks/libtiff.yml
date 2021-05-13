@@ -1,7 +1,7 @@
 ---
 - name: download libtiff source
   get_url:
-    url: http://download.osgeo.org/libtiff/tiff-{{ libtiff_ver }}.tar.gz
+    url: https://download.osgeo.org/libtiff/tiff-{{ libtiff_ver }}.tar.gz
     dest: "imagemagick_sources/tiff-{{ libtiff_ver }}.tar.gz"
     force: no
 

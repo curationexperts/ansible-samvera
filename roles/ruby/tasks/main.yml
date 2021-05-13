@@ -6,7 +6,7 @@
 # Usage:
 #    - { role: ruby, ruby_version: '2.4.2'  }
 #
-# Reads http://cache.ruby-lang.org/pub/ruby/index.txt
+# Reads https://cache.ruby-lang.org/pub/ruby/index.txt
 # to find download URL and checksum
 
 
@@ -27,7 +27,7 @@
     package: name=ruby state=absent
 
   - name: lookup download path and checksum from ruby-lang release index
-    shell: curl http://cache.ruby-lang.org/pub/ruby/index.txt | grep {{ ruby_version}}.tar.gz
+    shell: curl https://cache.ruby-lang.org/pub/ruby/index.txt | grep {{ ruby_version}}.tar.gz
     register: ruby_index_line
 
   - name: separate index entry values

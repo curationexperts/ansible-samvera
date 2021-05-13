@@ -54,7 +54,7 @@
 
 - name: download ffmpeg source
   get_url:
-    url: http://ffmpeg.org/releases/ffmpeg-{{ ffmpeg_version }}.tar.bz2
+    url: https://ffmpeg.org/releases/ffmpeg-{{ ffmpeg_version }}.tar.bz2
     dest: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}.tar.bz2'
     force: no
 

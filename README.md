@@ -18,7 +18,7 @@ Version 1.5 and earlier are compatible with Ubuntu 16.04.
 After version 1.5 (released 16 July 2019) Ubuntu 18.04 is assumed.
 
 ## Prerequisites
-Tested with [Ansible](http://docs.ansible.com/intro_installation.html) 2.5.4. Please note that ansible is *very* picky about version numbers. You will get better results if you use pip to install ansible. To upgrade do: `pip install ansible==2.5.4`
+Tested with [Ansible](https://docs.ansible.com/intro_installation.html) 2.5.4. Please note that ansible is *very* picky about version numbers. You will get better results if you use pip to install ansible. To upgrade do: `pip install ansible==2.5.4`
 
 ## Contributing
 Contributions are welcome in the form of issues (including bug reports, use cases) and pull requests.

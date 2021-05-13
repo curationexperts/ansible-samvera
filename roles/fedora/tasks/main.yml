@@ -47,9 +47,11 @@
   when: fedora_war.stat.exists == False
 
 - name: install activation
+  become: yes
   get_url: url=https://repo1.maven.org/maven2/javax/xml/bind/activation/1.0.2/activation-1.0.2.jar owner=tomcat dest=/var/lib/tomcat9/lib/activation-1.0.2.jar timeout=100
 
 - name: install jaxb
+  become: yes
   get_url: url=https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar owner=tomcat dest=/var/lib/tomcat9/lib/jaxb-api-2.3.1.jar timeout=100
 
 - name: create systemd configuration

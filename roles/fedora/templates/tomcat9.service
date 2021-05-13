@@ -39,6 +39,7 @@ ReadWritePaths=/etc/tomcat9/Catalina/
 ReadWritePaths=/var/lib/tomcat9/webapps/
 ReadWritePaths=/var/log/tomcat9/
 ReadWritePaths=/opt/fedora-data
+ReadWritePaths=/tmp
 
 [Install]
 WantedBy=multi-user.target

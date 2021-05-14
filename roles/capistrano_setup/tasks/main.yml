@@ -13,7 +13,6 @@
 #     - https://github.com/mark-dce.keys
 #     - https://github.com/little9.keys
 #     - https://github.com/no-reply.keys
-#     - https://github.com/bess.keys
 
 - name: create cap group
   become: yes

@@ -9,14 +9,15 @@
   package: name={{ item }} state=present
   become: yes
   with_items:
+    - acl
     - postgresql
     - libpq-dev
-    - python-psycopg2
+    - python3-psycopg2
   notify:
 
-- name: install psycopg2 python module
+- name: install python3-psycopg2 python module
   become: yes
-  pip: name=psycopg2
+  package: name=python3-psycopg2
 
 - name: create db_backups directory
   become: yes

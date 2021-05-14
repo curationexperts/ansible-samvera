@@ -1,6 +1,6 @@
 - name: Download node.js installation script
   get_url:
-    url: 'https://deb.nodesource.com/setup_8.x'
+    url: 'https://deb.nodesource.com/setup_10.x'
     dest: /home/{{ ansible_ssh_user }}/nodesource_setup.sh
 
 - name: make node script exectuable

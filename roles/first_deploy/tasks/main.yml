@@ -44,6 +44,22 @@
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
+- name: install ed25519 support
+  become_user: ubuntu
+  gem:
+    name: ed25519
+    version: 1.2.4
+    state: present
+    user_install: yes
+
+- name: install bcrypt_pbkdf support
+  become_user: ubuntu
+  gem:
+    name: bcrypt_pbkdf
+    version: 1.1.0
+    state: present
+    user_install: yes
+
 - name: find bundler version from Gemfile.lock
   shell: grep -A 1 "BUNDLED WITH" Gemfile.lock
   args:
@@ -151,7 +167,7 @@
   service: name=solr state=restarted
 
 - name: deploy to production directories with capistrano
-  shell: BRANCH={{ branch | default('master') }} cap localhost deploy
+  shell: BRANCH={{ branch | default('main') }} cap localhost deploy
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 

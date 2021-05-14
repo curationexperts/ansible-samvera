@@ -28,44 +28,56 @@
 
 - name: install servlet container package
   become: yes
-  package: name=tomcat8 state=present
+  package: name=tomcat9 state=present
 
 - name: download fedora
   get_url: url=https://repo1.maven.org/maven2/org/fcrepo/fcrepo-webapp/{{ fedora_version }}/fcrepo-webapp-{{ fedora_version }}.war owner={{ ansible_ssh_user }} dest={{ install_path }}/fcrepo-webapp-{{ fedora_version }}.war timeout=100
 
 - name: make fedora data dir
-  file: owner=tomcat8 group=tomcat8 state=directory path=/opt/fedora-data
+  file: owner=tomcat group=tomcat state=directory path=/opt/fedora-data
   become: yes
 
 - name: check fedora.war
-  stat: path=/var/lib/tomcat8/webapps/fedora.war
+  stat: path=/var/lib/tomcat9/webapps/fedora.war
   register: fedora_war
 
 - name: copy over fedora.war
   become: yes
-  command: cp {{ install_path }}/fcrepo-webapp-{{ fedora_version }}.war /var/lib/tomcat8/webapps/fedora.war
+  command: cp {{ install_path }}/fcrepo-webapp-{{ fedora_version }}.war /var/lib/tomcat9/webapps/fedora.war
   when: fedora_war.stat.exists == False
+
+- name: install activation
+  become: yes
+  get_url: url=https://repo1.maven.org/maven2/javax/xml/bind/activation/1.0.2/activation-1.0.2.jar owner=tomcat dest=/var/lib/tomcat9/lib/activation-1.0.2.jar timeout=100
+
+- name: install jaxb
+  become: yes
+  get_url: url=https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar owner=tomcat dest=/var/lib/tomcat9/lib/jaxb-api-2.3.1.jar timeout=100
+
+- name: create systemd configuration
+  become: yes
+  template: src=tomcat9.service dest=/lib/systemd/system/tomcat9.service backup=yes
 
 - name: create tomcat config and java options
   become: yes
   template:
-    src: tomcat8.j2
+    src: tomcat9.j2
     dest: "{{ fedora_config_file }}"
-    owner: tomcat8
-    group: tomcat8
+    owner: tomcat
+    group: tomcat
     backup: yes
 
 - name: set port for tomcat
   become: yes
   replace:
-    dest: /etc/tomcat8/server.xml
+    dest: /etc/tomcat9/server.xml
     regexp: "8080"
     replace: "{{ tomcat_port }}"
 
 - name: add log rotation for catalina.out (tomcat/fedora logs)
   become: yes
-  template: src=logrotate-tomcat dest=/etc/logrotate.d/tomcat8 backup=yes
+  template: src=logrotate-tomcat dest=/etc/logrotate.d/tomcat9 backup=yes
 
 - name: restart servlet
   become: yes
-  service: name=tomcat8 enabled=yes state=restarted
+  systemd: name=tomcat9 state=restarted daemon_reload=yes

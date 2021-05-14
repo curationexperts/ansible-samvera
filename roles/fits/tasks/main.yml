@@ -75,46 +75,47 @@
 
 - name: install servlet container package
   become: yes
-  package: name=tomcat8 state=present
+  package: name=tomcat9 state=present
 
 - name: download fits servlet version {{ fits_servlet_version }}
   become: yes
   get_url:
     url: 'https://projects.iq.harvard.edu/files/fits/files/fits-{{ fits_servlet_version }}.war'
-    owner: tomcat8
-    group: tomcat8
+    owner: tomcat
+    group: tomcat
     dest: '{{ install_path }}/fits-{{ fits_servlet_version }}.war'
     checksum: 'sha256:{{ fits_servlet_checksum }}'
     force: yes
 
 - name: copy over fits.war
   become: yes
-  command: cp {{ install_path }}/fits-{{ fits_servlet_version }}.war /var/lib/tomcat8/webapps/fits-{{ fits_servlet_version }}.war
+  command: cp {{ install_path }}/fits-{{ fits_servlet_version }}.war /var/lib/tomcat9/webapps/fits-{{ fits_servlet_version }}.war
 
-- name: copy catalina properties
+- name: copy context file
   become: yes
   template:
-    src: catalina.properties.j2
-    dest: /etc/tomcat8/catalina.properties
-    owner: tomcat8
-    group: tomcat8
+    src: context.j2
+    dest: /etc/tomcat9/context.xml
+    owner: tomcat
+    group: tomcat
     backup: yes
 
 - name: set port for tomcat
   become: yes
   replace:
-    dest: /etc/tomcat8/server.xml
+    dest: /etc/tomcat9/server.xml
     regexp: "8080"
     replace: "{{ tomcat_port }}"
 
 - name: add log rotation for catalina.out (tomcat/fedora logs)
   become: yes
-  template: src=logrotate-tomcat dest=/etc/logrotate.d/tomcat8 backup=yes
+  template: src=logrotate-tomcat dest=/etc/logrotate.d/tomcat9 backup=yes
 
 - name: restart servlet
   become: yes
-  service: name=tomcat8 enabled=yes state=restarted
+  service: name=tomcat9 enabled=yes state=restarted
 
 - name: check that fits-servlet is up
   uri:
     url: 'http://localhost:{{tomcat_port}}/fits-{{ fits_servlet_version}}/'
+    timeout: 60

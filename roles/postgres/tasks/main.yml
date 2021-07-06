@@ -41,13 +41,6 @@
   shell: ls /etc/postgresql
   register: postgres_version
 
-- name: configure md5 security local postgress users
-  become: yes
-  lineinfile:
-    path: /etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf
-    regexp: '^local\s+all\s+postgres'
-    line: 'local	all		postgres				md5'
-
 - name: configure md5 security other local  users
   become: yes
   lineinfile:

@@ -49,7 +49,6 @@ Here is an example playbook that uses these roles (plus a few extra internal-to-
       - https://github.com/user2.keys
     db_user: 'db_user'
     db_pass: 'whatever'
-    postgres_pass: 'whatever'
   roles:
     - { role: packages }
     - { role: set_timezone, timezone: America/Chicago }

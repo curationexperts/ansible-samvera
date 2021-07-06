@@ -12,10 +12,14 @@
 # to run things in production.
 
 - name: create fcrepo database
-  postgresql_db: name=fcrepo state=present login_user=postgres login_password={{ postgres_pass }}
+  postgresql_db: name=fcrepo state=present login_user=postgres
+  become: yes
+  become_user: postgres
 
 - name: add samvera user
-  postgresql_user: db=fcrepo name={{ fcdb_user }} password={{ fcdb_pass }} priv=ALL state=present login_user=postgres login_password={{ postgres_pass }}
+  postgresql_user: db=fcrepo name={{ fcdb_user }} password={{ fcdb_pass }} priv=ALL state=present login_user=postgres
+  become: yes
+  become_user: postgres
 
 - name: setup install directory
   set_fact:

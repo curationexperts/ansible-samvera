@@ -15,6 +15,19 @@
     - python3-psycopg2
   notify:
 
+- name: determine postgres directory
+  shell: ls /etc/postgresql
+  register: postgres_version
+
+- name: pgdata stat
+  stat: path=/var/lib/postgresql/{{ postgres_version.stdout }}/main
+  register: pgstat
+
+- name: move pgdata to opt
+  become: yes
+  command: mv /var/lib/postgresql/{{ postgres_version.stdout }}/main /opt/pgdata
+  when: pgstat.stat.exists
+
 - name: install python3-psycopg2 python module
   become: yes
   package: name=python3-psycopg2
@@ -31,15 +44,20 @@
   become: yes
   cron: name="backup pg db" user=postgres job="/opt/pg_backups/pg_daily_double" minute="0" hour="1" state=present
 
-- name: set postgres password
-  become: yes
-  become_user: postgres
-  postgresql_user: name=postgres password={{ postgres_pass }}
-  ignore_errors: yes
 
-- name: determine postgres directory
-  shell: ls /etc/postgresql
-  register: postgres_version
+- name: configure peer security for local postgres user
+  become: yes
+  lineinfile:
+    path: /etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf
+    regexp: '^local\s+all\s+postgres'
+    line: 'local       all             postgres                                peer'
+
+- name: write new pgdata value
+  become: yes
+  lineinfile:
+    path: /etc/postgresql/{{ postgres_version.stdout }}/main/postgresql.conf
+    line: "data_directory = '/opt/pgdata'"
+    regexp: '^data_directory = .*'
 
 - name: configure md5 security other local  users
   become: yes
@@ -57,10 +75,18 @@
   service: name=postgresql enabled=yes state=restarted
 
 - name: create samvera database
-  postgresql_db: name={{ project_name }} state=present login_user=postgres login_password={{ postgres_pass }}
+  become: yes
+  become_user: postgres
+  postgresql_db: name={{ project_name }} state=present login_user=postgres
+
+- name: disable postgres login
+  become: yes
+  user: name=postgres password='*' state=present
 
 - name: add samvera user
-  postgresql_user: db={{ project_name }} name={{ db_user }} password={{ db_pass }} priv=ALL state=present login_user=postgres login_password={{ postgres_pass }}
+  become: yes
+  become_user: postgres
+  postgresql_user: db={{ project_name }} name={{ db_user }} password={{ db_pass }} priv=ALL state=present login_user=postgres
 
 - name: create postgres service directory
   become: yes

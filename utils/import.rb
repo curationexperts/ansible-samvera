@@ -17,7 +17,10 @@ system("/etc/init.d/redis stop")
 FileUtils.cp("redis/dump.rdb", "/var/lib/redis/dump.db")
 FileUtils.chown("redis", "redis", "/var/lib/redis/dump.db")
 system("/etc/init.d/redis restart")
-system("su postgres -c 'dropdb -U postgres --if-exists #{dbstuff['DATABASE_NAME']} && pg_restore -U postgres -c -d postgres psql/pg.dump'", exception:true) 
+system("systemctl stop apache2")
+#this convoluted series of commands is to work around pg_restore trying to re-create the existing public schema
+system(%Q{su postgres -c 'dropdb --if-exists #{dbstuff['DATABASE_NAME']} && createdb #{dbstuff['DATABASE_NAME']} && psql #{dbstuff['DATABASE_NAME']} -c "drop schema if exists public;"  && pg_restore -U postgres -d #{dbstuff['DATABASE_NAME']} psql/pg.dump'}, exception:true) 
+system("systemctl start apache2")
 system("tar -xzf derivatives/derivatives.tgz -C /opt")
 system("tar -xzf derivatives/uploads.tgz -C /opt/uploads")
 

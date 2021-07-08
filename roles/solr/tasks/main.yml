@@ -25,7 +25,7 @@
 
 - name: download solr tarball
   become: yes
-  get_url: url=http://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="sha512:{{ solr_sha512.stdout }}"
+  get_url: url=https://mirrors.ocf.berkeley.edu/apache/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="sha512:{{ solr_sha512.stdout }}"
 
 - name: untar solr tarball
   become: yes

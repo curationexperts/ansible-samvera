@@ -11,4 +11,4 @@
     - python-setuptools
     - python-dev
     - build-essential
-    - python3-pip
+    - python-pip

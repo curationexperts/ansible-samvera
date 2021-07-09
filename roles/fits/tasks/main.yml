@@ -118,4 +118,4 @@
 - name: check that fits-servlet is up
   uri:
     url: 'http://localhost:{{tomcat_port}}/fits-{{ fits_servlet_version}}/'
-    timeout: 60
+    timeout: 180

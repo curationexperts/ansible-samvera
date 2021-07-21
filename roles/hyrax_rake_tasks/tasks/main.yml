@@ -20,3 +20,10 @@
   shell: RAILS_ENV=production bundle exec rake hyrax:default_collection_types:create
   args:
     chdir: /opt/{{ project_name }}/current
+
+- name: repair collectiontype translations
+  become: yes
+  become_user: deploy
+  shell: RAILS_ENV=production bundle exec rake tenejo:fix_i18n
+  args:
+    chdir: /opt/{{ project_name }}/current

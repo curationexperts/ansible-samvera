@@ -20,7 +20,7 @@
   get_url:
     url: "https://github.com/cantaloupe-project/cantaloupe/releases/download/v{{ cantaloupe_version }}/cantaloupe-{{ cantaloupe_version}}.zip"
     dest: '{{ install_path }}/cantaloupe-{{ cantaloupe_version }}.zip'
-    force: no
+    force: yes
 
 - name: unzip cantaloupe zipfile
   become: yes

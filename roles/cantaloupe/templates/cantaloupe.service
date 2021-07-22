@@ -5,7 +5,7 @@ Description=Cantaloupe IIIF server
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c "/usr/bin/java -Dcantaloupe.config=/opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe.properties -Xmx6g -jar /opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe-{{ cantaloupe_version }}.war"
+ExecStart=/bin/bash -c "/usr/bin/java -Dcantaloupe.config=/opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe.properties -Xmx6g -jar /opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe-{{ cantaloupe_version }}.jar"
 User=cantaloupe
 SyslogIdentifier=cantaloupe
 

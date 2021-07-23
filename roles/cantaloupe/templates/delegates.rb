@@ -1,5 +1,6 @@
 require 'logger'
 require 'cgi'
+
 ##
 # Sample Ruby delegate script containing stubs and documentation for all
 # available delegate methods. See the user manual for more information.
@@ -91,6 +92,11 @@ class CustomDelegate
   # @param options [Hash] Empty hash.
   # @return [Boolean,Hash<String,Object>] See above.
   #
+
+  def pre_authorize(options = {})
+    true
+  end
+
   def authorize(options = {})
     true
   end
@@ -103,24 +109,13 @@ class CustomDelegate
   # @return [Hash] Hash that will be merged into an IIIF Image API 2.x
   #                information response. Return an empty hash to add nothing.
   #
+
   def extra_iiif2_information_response_keys(options = {})
-=begin
-    Example:
-    {
-        'attribution' =>  'Copyright My Great Organization. All rights '\
-                          'reserved.',
-        'license' =>  'http://example.org/license.html',
-        'logo' =>  'http://example.org/logo.png',
-        'service' => {
-            '@context' => 'http://iiif.io/api/annex/services/physdim/1/context.json',
-            'profile' => 'http://iiif.io/api/annex/services/physdim',
-            'physicalScale' => 0.0025,
-            'physicalUnits' => 'in'
-        }
-    }
-=end
-    {}
   end
+
+  def metadata(options = {})
+  end
+
 
   ##
   # Tells the server which source to use for the given identifier.
@@ -261,5 +256,4 @@ class CustomDelegate
   def redactions(options = {})
     []
   end
-
 end

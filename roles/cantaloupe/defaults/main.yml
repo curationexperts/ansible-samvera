@@ -1,1 +1,2 @@
-cantaloupe_log_dir: /var/log/cantaloupe/
+cantaloupe_log_dir: /var/log/cantaloupe
+cantaloupe_cache_dir: /var/cache/cantaloupe

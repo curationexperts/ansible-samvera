@@ -32,6 +32,14 @@
     owner: cantaloupe
     group: cantaloupe
 
+- name: ensure cantaloupe cache directory exists
+  become: yes
+  file:
+    path: "{{ cantaloupe_cache_dir }}"
+    state: directory
+    owner: cantaloupe
+    group: cantaloupe
+
 - name: ensure cantaloupe temp directory exists
   become: yes
   file:

@@ -115,6 +115,12 @@
   become: yes
   service: name=tomcat9 enabled=yes state=restarted
 
+- name: wait for tomcat to come back up
+  wait_for:
+    port: '{{tomcat_port}}'
+    host: 127.0.0.1
+    timeout: 300
+
 - name: check that fits-servlet is up
   uri:
     url: 'http://localhost:{{tomcat_port}}/fits-{{ fits_servlet_version}}/'

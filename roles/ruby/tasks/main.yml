@@ -52,7 +52,7 @@
       state: directory
 
   - name: download ruby
-    get_url: url={{ ruby_gzip_url }} checksum={{ ruby_sha_256 }}  dest={{ install_path }}/ruby-{{ ruby_version}}.tar.gz
+    get_url: url={{ ruby_gzip_url }} sha256sum={{ ruby_sha_256 }}  dest={{ install_path }}/ruby-{{ ruby_version}}.tar.gz
 
   - name: unzip ruby file
     unarchive: src={{ install_path }}/ruby-{{ ruby_version}}.tar.gz dest={{ install_path }}/ creates={{ install_path }}/ruby-{{ ruby_version}}/compile.c copy=no

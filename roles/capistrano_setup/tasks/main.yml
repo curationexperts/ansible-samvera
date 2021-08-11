@@ -22,19 +22,6 @@
   become: yes
   user: name=deploy group=deploy shell=/bin/bash createhome=yes state=present
 
-- name: create directories needed for capistrano
-  become: yes
-  file: path={{ item }} state=directory owner=deploy group=deploy
-  with_items:
-    - /opt/{{ project_name }}/shared/config
-    - /opt/{{ project_name }}/shared/log
-    - /opt/{{ project_name }}/shared/public/assets
-    - /opt/{{ project_name }}/shared/tmp/pids
-    - /opt/{{ project_name }}/releases
-    - /opt/derivatives
-    - /opt/uploads
-    - /home/deploy/.ssh
-
 - name: add keys for capistrano user
   become: yes
   authorized_key: user=deploy key={{ item }} exclusive=no state=present

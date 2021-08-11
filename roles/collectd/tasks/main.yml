@@ -44,10 +44,6 @@
   args:
     chdir: '{{ install_path }}/collectd-{{ collectd_version }}'
 
-- name: configure collectd
-  become: yes
-  template: src=collectd.conf.j2 dest=/opt/collectd/etc/collectd.conf owner=root group=root backup=no
-
 - name: create collectd system service
   become: yes
   template: src=collectd.service.j2 dest=/lib/systemd/system/collectd.service owner=root group=root backup=no

@@ -1,0 +1,110 @@
+- name: add pg_backups script
+  become: yes
+  template: src=pg_backups.j2 dest=/opt/pg_backups/pg_daily_double owner=root group=root mode=0755
+  tags:
+    - postgres
+    - configure
+
+- name: add pg_backups cron job
+  become: yes
+  cron: name="backup pg db" user=postgres job="/opt/pg_backups/pg_daily_double" minute="0" hour="1" state=present
+  tags:
+    - postgres
+    - configure
+
+- name: create samvera database
+  become: yes
+  become_user: postgres
+  postgresql_db: name={{ project_name }} state=present login_user=postgres
+  tags:
+    - postgres
+    - configure
+
+- name: add samvera application user
+  become: yes
+  become_user: postgres
+  postgresql_user: db={{ project_name }} name={{ db_user }} password={{ db_pass }} priv=ALL state=present login_user=postgres
+  tags:
+    - postgres
+    - configure
+
+- name: create fcrepo database
+  postgresql_db: name=fcrepo state=present login_user=postgres
+  become: yes
+  become_user: postgres
+  tags:
+    - postgres
+    - fedora
+    - configure
+
+- name: add samvera user to fedora database
+  postgresql_user: db=fcrepo name={{ fcdb_user }} password={{ fcdb_pass }} priv=ALL state=present login_user=postgres
+  become: yes
+  become_user: postgres
+  tags:
+    - postgres
+    - fedora
+    - configure
+
+- name: create Fedora config and java options
+  become: yes
+  template:
+    src: tomcat9.j2
+    dest: "{{ fedora_config_file }}"
+    owner: tomcat
+    group: tomcat
+    backup: yes
+  tags:
+    - fedora
+    - configure
+
+- name: restart Fedora servlet
+  become: yes
+  systemd: name=tomcat9 state=restarted daemon_reload=yes
+  tags:
+    - fedora
+    - configure
+
+- name: create default solr collection
+  become: yes
+  become_user: solr
+  shell: /opt/solr/bin/solr create -c {{ project_name }} -d _default -p {{ solr_port }} creates=/var/solr/data/{{ project_name }}
+  tags:
+    - solr
+    - configure
+
+- name: create directories needed for capistrano
+  become: yes
+  file: path={{ item }} state=directory owner=deploy group=deploy
+  with_items:
+    - /opt/{{ project_name }}/shared/config
+    - /opt/{{ project_name }}/shared/log
+    - /opt/{{ project_name }}/shared/public/assets
+    - /opt/{{ project_name }}/shared/tmp/pids
+    - /opt/{{ project_name }}/releases
+  tags:
+    - capistrano
+    - configure
+
+- name: write cantaloupe config file
+  become: yes
+  template:
+    src: cantaloupe.properties
+    dest: /opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe.properties
+    owner: cantaloupe
+    group: cantaloupe
+    mode: 0644
+  tags:
+    - cantaloupe
+    - configure
+
+- name: (re)start cantaloupe
+  become: yes
+  shell: systemctl restart cantaloupe.service
+  tags:
+    - cantaloupe
+    - configure
+    
+- name: configure collectd
+  become: yes
+  template: src=collectd.conf.j2 dest=/opt/collectd/etc/collectd.conf owner=root group=root backup=no

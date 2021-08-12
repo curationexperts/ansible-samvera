@@ -11,16 +11,6 @@
 # Note that backing fedora with PostGres is our default and is ALWAYS how we want
 # to run things in production.
 
-- name: create fcrepo database
-  postgresql_db: name=fcrepo state=present login_user=postgres
-  become: yes
-  become_user: postgres
-
-- name: add samvera user
-  postgresql_user: db=fcrepo name={{ fcdb_user }} password={{ fcdb_pass }} priv=ALL state=present login_user=postgres
-  become: yes
-  become_user: postgres
-
 - name: setup install directory
   set_fact:
     install_path: /home/{{ ansible_ssh_user }}/install
@@ -61,15 +51,6 @@
 - name: create systemd configuration
   become: yes
   template: src=tomcat9.service dest=/lib/systemd/system/tomcat9.service backup=yes
-
-- name: create tomcat config and java options
-  become: yes
-  template:
-    src: tomcat9.j2
-    dest: "{{ fedora_config_file }}"
-    owner: tomcat
-    group: tomcat
-    backup: yes
 
 - name: set port for tomcat
   become: yes

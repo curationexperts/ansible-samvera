@@ -40,11 +40,6 @@
   shell: bash {{ install_path }}/solr-{{ solr_version }}/bin/install_solr_service.sh {{ install_path }}/solr-{{ solr_version }}.tgz -p {{ solr_port }}
   when: solr_init_script.stat.exists == False
 
-- name: create default collection
-  become: yes
-  become_user: solr
-  shell: /opt/solr/bin/solr create -c {{ project_name }} -d _default -p {{ solr_port }} creates=/var/solr/data/{{ project_name }}
-
 - name: configure solr loggers
   become: yes
   become_user: solr

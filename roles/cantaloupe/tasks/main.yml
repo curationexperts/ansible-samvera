@@ -60,15 +60,6 @@
   become: yes
   template: src=logdir.j2 dest=/usr/lib/tmpfiles.d/cantaloupe.conf owner=root group=root backup=no
 
-- name: write cantaloupe config file
-  become: yes
-  template:
-    src: cantaloupe.properties
-    dest: /opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe.properties
-    owner: cantaloupe
-    group: cantaloupe
-    mode: 0644
-
 - name: write cantaloupe custom delegate script
   become: yes
   template:

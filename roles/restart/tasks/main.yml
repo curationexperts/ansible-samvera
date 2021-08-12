@@ -40,3 +40,10 @@
     name: clamav-freshclam
     enabled: yes
     state: restarted
+
+- name: restart cantaloupe
+  become: yes
+  service:
+    name: cantaloupe
+    enabled: yes
+    state: restarted

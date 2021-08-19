@@ -38,7 +38,7 @@ ProtectSystem=strict
 ReadWritePaths=/etc/tomcat9/Catalina/
 ReadWritePaths=/var/lib/tomcat9/webapps/
 ReadWritePaths=/var/log/tomcat9/
-ReadWritePaths=/opt/fedora-data
+ReadWritePaths=/opt/
 ReadWritePaths=/tmp
 
 [Install]

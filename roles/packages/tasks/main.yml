@@ -50,6 +50,7 @@
     - libgmp3-dev
     - libreoffice
     - libmagickwand-dev
+    - libopenjp3d7
     - imagemagick
     - autoconf
     - libc6-dev

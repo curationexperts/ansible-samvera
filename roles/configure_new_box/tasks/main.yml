@@ -92,7 +92,7 @@
 - name: write cantaloupe config file
   become: yes
   template:
-    src: cantaloupe.properties
+    src: ansible-samvera/roles/cantaloupe/templates/cantaloupe.properties
     dest: /opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe.properties
     owner: cantaloupe
     group: cantaloupe

@@ -27,7 +27,7 @@
     package: name=ruby state=absent
 
   - name: lookup download path and checksum from ruby-lang release index
-    shell: curl https://cache.ruby-lang.org/pub/ruby/index.txt | grep {{ ruby_version}}.tar.gz
+    shell: curl https://cache.ruby-lang.org/pub/ruby/index.txt | grep {{ ruby_version }}.tar.gz
     register: ruby_index_line
 
   - name: separate index entry values
@@ -55,17 +55,17 @@
     get_url: url={{ ruby_gzip_url }} checksum="sha256:{{ ruby_sha_256 }}"  dest={{ install_path }}/ruby-{{ ruby_version}}.tar.gz
 
   - name: unzip ruby file
-    unarchive: src={{ install_path }}/ruby-{{ ruby_version}}.tar.gz dest={{ install_path }}/ creates={{ install_path }}/ruby-{{ ruby_version}}/compile.c copy=no
+    unarchive: src={{ install_path }}/ruby-{{ ruby_version }}.tar.gz dest={{ install_path }}/ creates={{ install_path }}/ruby-{{ ruby_version }}/compile.c copy=no
 
   - name: configure ruby
-    shell: cd {{ install_path }}/ruby-{{ ruby_version}} && ./configure --enable-shared creates={{ install_path }}/ruby-{{ ruby_version}}/Makefile
+    shell: cd {{ install_path }}/ruby-{{ ruby_version }} && ./configure --enable-shared creates={{ install_path }}/ruby-{{ ruby_version }}/Makefile
 
   - name: make ruby
-    shell: cd {{ install_path }}/ruby-{{ ruby_version}} && make
+    shell: cd {{ install_path }}/ruby-{{ ruby_version }} && make
 
   - name: install ruby
     become: yes
-    shell: cd {{ install_path }}/ruby-{{ ruby_version}} && make install
+    shell: cd {{ install_path }}/ruby-{{ ruby_version }} && make install
   #when applied to each of the tasks in the block above
   when: ruby_preinstalled.failed
 

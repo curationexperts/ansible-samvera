@@ -17,7 +17,7 @@
   become: yes
   gem: name=passenger user_install=no state=present version={{ passenger_ver }}
 
-- name: install apache packages for Ubuntu 20.04
+- name: install apache packages for Ubuntu
   become: yes
   package: name={{ item }} state=present
   with_items:

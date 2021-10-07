@@ -1,0 +1,18 @@
+---
+- name: "create imagemagick config dir"
+  become: yes
+  file:
+    path: /home/deploy/.config/ImageMagick
+    state: directory
+    owner: deploy
+    group: deploy
+    mode: '0755'
+
+- name: "create user imagemagick policy"
+  become: yes
+  template: 
+    src: templates/policy.xml.j2 
+    dest: /home/deploy/.config/ImageMagick/policy.xml 
+    owner: deploy 
+    group: deploy 
+    backup: no

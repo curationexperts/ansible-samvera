@@ -78,15 +78,6 @@
     group: root
     mode: 0644
 
-- name: write cantaloupe properties file
-  become: yes
-  template:
-    src: cantaloupe.properties
-    dest: /opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe.properties
-    owner: cantaloupe 
-    group: cantaloupe
-    mode: 0644
-
 - name: enable cantaloupe service in systemctl
   become: yes
   shell: systemctl enable cantaloupe.service

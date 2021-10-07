@@ -8,6 +8,15 @@
     group: deploy
     mode: '0755'
 
+- name: "create tmpdir"
+  become: yes
+  file:
+    path: "{{ tmpdir }}"
+    state: directory
+    owner: deploy
+    group: deploy
+    mode: '0755'
+
 - name: "create user imagemagick policy"
   become: yes
   template: 

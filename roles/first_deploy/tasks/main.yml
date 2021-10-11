@@ -102,12 +102,6 @@
       shell: gem install bundler -v "{{ bundler_version }}"
   when: bundler_preinstalled.failed
 
-- name: install gems (bundle install)
-  become: yes
-  shell: bundle install
-  args:
-    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
-
   # Set up a keypair so the ansible user can connect as the capistrano deploy user
 - name: create deployment keypair for connection user
   user:
@@ -149,6 +143,10 @@
 - name: restart apache to load new virtual host
   become: yes
   service: name=apache2 state=restarted
+
+- name: create solr config dir
+  become: yes
+  file: path=/var/solr/data/{{ project_name }}/conf owner=solr group=solr state=directory
 
 - name: temporary symlink schema from git checkout to solr - managed-schema
   become: yes

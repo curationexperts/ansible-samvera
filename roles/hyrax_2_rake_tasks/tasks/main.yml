@@ -1,10 +1,10 @@
 ---
-# ROLE: hyrax_rake_tasks
-# roles/hyrax_rake_tasks/tasks/main.yml
+# ROLE: hyrax_2_rake_tasks
+# roles/hyrax_2_rake_tasks/tasks/main.yml
 #
 # When hyrax is first installed, there are a few rake tasks that must be run.
 # Usage:
-#    - { role: hyrax_rake_tasks, project_name: *required*, branch: <optional> }
+#    - { role: hyrax_2_rake_tasks, project_name: *required*, branch: <optional> }
 #
 
 - name: ensure default admin set with rake
@@ -18,12 +18,5 @@
   become: yes
   become_user: deploy
   shell: RAILS_ENV=production bundle exec rake hyrax:default_collection_types:create
-  args:
-    chdir: /opt/{{ project_name }}/current
-
-- name: repair collectiontype translations
-  become: yes
-  become_user: deploy
-  shell: RAILS_ENV=production bundle exec rake tenejo:fix_i18n
   args:
     chdir: /opt/{{ project_name }}/current

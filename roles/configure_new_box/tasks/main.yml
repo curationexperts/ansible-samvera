@@ -113,4 +113,5 @@
   template: src=collectd.conf.j2 dest=/opt/collectd/etc/collectd.conf owner=root group=root backup=no
   tags:
     - collectd
+    - splunk
     - configure

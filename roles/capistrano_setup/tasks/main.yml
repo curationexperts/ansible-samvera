@@ -13,6 +13,15 @@
 #     - https://github.com/mark-dce.keys
 #     - https://github.com/little9.keys
 #     - https://github.com/no-reply.keys
+#
+# Optional:
+# Declare a sudo_users variable to copy github ssh keys
+# to the deploy user (useful for playbooks that include a sudo_users.yml file)
+# vars:
+#   sudo_users:
+#.  - { username: 'mark', keys_to_add: 'https://github.com/mark-dce.keys' }
+#   - { username: 'mml', keys_to_add: 'https://github.com/mlooney.keys' }
+
 
 - name: create cap group
   become: yes
@@ -22,12 +31,19 @@
   become: yes
   user: name=deploy group=deploy shell=/bin/bash createhome=yes state=present
 
-- name: add keys for capistrano user
+- name: add keys for capistrano user from keys_to_add array
   become: yes
   authorized_key: user=deploy key={{ item }} exclusive=no state=present
   with_items:
     - "{{ keys_to_add }}"
   when: keys_to_add is defined and keys_to_add != None
+
+- name: add keys for capistrano user from sudo_users array
+  become: yes
+  authorized_key: user=deploy key={{ item.keys_to_add }} exclusive=no state=present
+  with_items:
+    - "{{ sudo_users }}"
+  when: sudo_users is defined and sudo_users != None
 
 - name: add shell for capistrano user
   become: yes

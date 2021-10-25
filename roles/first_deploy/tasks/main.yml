@@ -13,6 +13,10 @@
     path: /home/{{ ansible_ssh_user }}/.ssh/known_hosts
     state: absent
 
+- name: "create shared project directory"
+  become: yes
+  file: path=/opt/{{ project_name }} owner=deploy group=deploy state=directory
+
 - name: generate rails secret
   command: openssl rand -hex 64
   register: rails_secret
@@ -102,6 +106,12 @@
       shell: gem install bundler -v "{{ bundler_version }}"
   when: bundler_preinstalled.failed
 
+- name: install gems (bundle install)
+  become: yes
+  shell: bundle install
+  args:
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
+
   # Set up a keypair so the ansible user can connect as the capistrano deploy user
 - name: create deployment keypair for connection user
   user:
@@ -119,7 +129,6 @@
   authorized_key:
       user: deploy
       key: "{{ public_key.content | b64decode }}"
-
 
 - name: ensure ansible user is in the deploy group
   become: yes

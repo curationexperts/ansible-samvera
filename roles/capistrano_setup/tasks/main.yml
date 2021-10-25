@@ -74,10 +74,3 @@
     groups: deploy
     append: yes
 
-- name: "create capistrano skeleton"
-  become: yes
-  file: path=/opt/{{ project_name }}/{{ item }} owner=deploy group=deploy state=directory
-  loop:
-     - releases
-     - repo
-     - shared/config

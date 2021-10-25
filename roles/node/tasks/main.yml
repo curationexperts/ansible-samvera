@@ -1,6 +1,17 @@
+---
+# ROLE: node
+# roles/node/tasks/main.yml
+#
+# Installs the specified version of node, defaults to current LTS release
+# # Usage:
+#    - { role: node, node_version: <optional> }
+#
+# For suppoerted node versions, see https://github.com/nodesource/distributions#installation-instructions
+#
+
 - name: Download node.js installation script
   get_url:
-    url: 'https://deb.nodesource.com/setup_10.x'
+    url: https://deb.nodesource.com/setup_{{ node_version | default('lts') }}.x
     dest: /home/{{ ansible_ssh_user }}/nodesource_setup.sh
 
 - name: make node script exectuable

@@ -93,13 +93,9 @@
     regexp: DefaultLimitNPROC
     line: DefaultLimitNPROC=65535
 
-- name: Set JVM heap size
+- name: "template solr variable configuration"
   become: yes
-  lineinfile:
-    path: /etc/default/solr.in.sh
-    state: present
-    regexp: '^#SOLR_JAVA_MEM|^SOLR_JAVA_MEM'
-    line: SOLR_JAVA_MEM="-Xms{{ solr_min_mem }}m -Xmx{{ solr_max_mem }}m"
+  template: src=solr.in.sh.j2 dest=/etc/default/solr.in.sh owner=root group=solr
 
 - name: enable solr system service
   become: yes

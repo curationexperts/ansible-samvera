@@ -1,5 +1,7 @@
 # ansible-samvera
-Prototype Configuration Management Scripts for Samvera based servers
+Configuration Management Scripts for Samvera based servers
+
+[![Apache 2.0 License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 
 This repository provides predefined ansible roles to install and configure a typical set of dependencies 
 required to run a Hyrax-based repository, including:
@@ -14,11 +16,10 @@ required to run a Hyrax-based repository, including:
 * ImageMagick and it's dependencies
 
 ## Operating systems
-Version 1.5 and earlier are compatible with Ubuntu 16.04.
-After version 1.5 (released 16 July 2019) Ubuntu 18.04 is assumed.
+Major version numbers of releases in this repoitory target the corresponding Ubuntu release.  I.E. v20.1.1 is compatible witht the 20.x LTS Ubuntu server release. 
 
 ## Prerequisites
-Tested with [Ansible](https://docs.ansible.com/intro_installation.html) 2.5.4. Please note that ansible is *very* picky about version numbers. You will get better results if you use pip to install ansible. To upgrade do: `pip install ansible==2.5.4`
+Tested with [Ansible](https://docs.ansible.com/intro_installation.html) 2.11.4.  Please see the [official Installing Ansible documentation](https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html) for details on installing or upgrading Ansible.
 
 ## Contributing
 Contributions are welcome in the form of issues (including bug reports, use cases) and pull requests.

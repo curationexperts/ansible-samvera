@@ -84,6 +84,7 @@
     - /opt/{{ project_name }}/releases
     - /opt/derivatives
     - /opt/uploads
+    - /opt/data
     - /home/deploy/.ssh
   tags:
     - capistrano

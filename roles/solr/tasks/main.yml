@@ -103,14 +103,13 @@
     src: solr.service
     dest: /etc/systemd/system/solr.service
     mode: 0644
-  systemd:
-    daemon_reload: yes
 
 - name: enable solr system service
   become: yes
   systemd:
     name: solr
     enabled: yes
+    daemon_reload: yes
 
 - name: restart solr system service
   become: yes

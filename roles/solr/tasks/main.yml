@@ -37,7 +37,7 @@
 
 - name: run standalone solr service install script
   become: yes
-  shell: bash {{ install_path }}/solr-{{ solr_version }}/bin/install_solr_service.sh {{ install_path }}/solr-{{ solr_version }}.tgz -p {{ solr_port }}
+  shell: bash {{ install_path }}/solr-{{ solr_version }}/bin/install_solr_service.sh {{ install_path }}/solr-{{ solr_version }}.tgz -p {{ solr_port }} -d /opt/solrdata
   when: solr_init_script.stat.exists == False
 
 - name: configure solr loggers

@@ -12,33 +12,33 @@
     - postgres
     - configure
 
-- name: create samvera database
-  become: yes
-  become_user: postgres
-  postgresql_db: name={{ project_name }} state=present login_user=postgres
-  tags:
-    - postgres
-    - configure
 
 - name: add samvera application user
   become: yes
   become_user: postgres
-  postgresql_user: db={{ project_name }} name={{ db_user }} password={{ db_pass }} priv=ALL state=present login_user=postgres
+  postgresql_user: db={{ project_name }} name=deploy priv=ALL role_attr_flags=SUPERUSER
+  tags:
+    - postgres
+    - configure
+
+- name: add fedora application user
+  become: yes
+  become_user: postgres
+  postgresql_user: db={{ project_name }} name=tomcat priv=ALL role_attr_flags=SUPERUSER
+  tags:
+    - postgres
+    - configure
+
+- name: create samvera database
+  become: yes
+  become_user: postgres
+  postgresql_db: name={{ project_name }} state=present login_user=postgres owner=deploy
   tags:
     - postgres
     - configure
 
 - name: create fcrepo database
-  postgresql_db: name=fcrepo state=present login_user=postgres
-  become: yes
-  become_user: postgres
-  tags:
-    - postgres
-    - fedora
-    - configure
-
-- name: add samvera user to fedora database
-  postgresql_user: db=fcrepo name={{ fcdb_user }} password={{ fcdb_pass }} priv=ALL state=present login_user=postgres
+  postgresql_db: name=fcrepo state=present login_user=postgres owner=tomcat
   become: yes
   become_user: postgres
   tags:

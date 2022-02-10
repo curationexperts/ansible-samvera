@@ -10,8 +10,5 @@ tomcat_max_memory: 2048m
 
 fedora_version: 4.7.5
 fedora_database: jdbc-postgresql
-# fcdb_user: admin
-# fcdb_pass: admin123
 fcdb_port: 5432
-
 tomcat_port: 8080

@@ -48,8 +48,6 @@ Here is an example playbook that uses these roles (plus a few extra internal-to-
     keys_to_add:
       - https://github.com/user1.keys
       - https://github.com/user2.keys
-    db_user: 'db_user'
-    db_pass: 'whatever'
   roles:
     - { role: packages }
     - { role: set_timezone, timezone: America/Chicago }

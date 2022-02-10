@@ -40,6 +40,8 @@ ReadWritePaths=/var/lib/tomcat9/webapps/
 ReadWritePaths=/var/log/tomcat9/
 ReadWritePaths=/opt/
 ReadWritePaths=/tmp
+ReadWritePaths=/usr/share/tomcat9/logs
+
 
 [Install]
 WantedBy=multi-user.target

@@ -4,12 +4,8 @@
 #
 # To back fedora with postgres, set these variables:
 # fedora_database: jdbc-postgresql
-# fcdb_user: fcdb_user
-# fcdb_pass: whatever
-# You must also create a postgres database called `fcrepo` and give the fcdb_user
+# You must also create a postgres database called `fcrepo` and give the "tomcat" user
 # rights on it
-# Note that backing fedora with PostGres is our default and is ALWAYS how we want
-# to run things in production.
 
 - name: setup install directory
   set_fact:

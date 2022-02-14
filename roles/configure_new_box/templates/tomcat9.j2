@@ -9,8 +9,6 @@ TOMCAT9_GROUP=tomcat
 
 JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.home=/opt/fedora-data"
 JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.modeshape.configuration=classpath:/config/jdbc-postgresql/repository.json"
-JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.postgresql.username={{ fcdb_user }}"
-JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.postgresql.password={{ fcdb_pass }}"
 JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.postgresql.host=localhost"
 JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.postgresql.port=5432"
 JAVA_OPTS="${JAVA_OPTS} -Dfits.home=/usr/local/lib/fits-1.4.0"

@@ -36,12 +36,12 @@
   become: yes
   file: owner=postgres group=postgres state=directory path=/opt/pg_backups
 
-- name: configure peer security for local postgres user
+- name: configure peer security for local users
   become: yes
   lineinfile:
     path: /etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf
     regexp: '^local\s+all\s+postgres'
-    line: 'local       all             postgres                                peer'
+    line: 'local       all             all                           peer'
 
 - name: write new pgdata value
   become: yes
@@ -49,17 +49,6 @@
     path: /etc/postgresql/{{ postgres_version.stdout }}/main/postgresql.conf
     line: "data_directory = '/opt/pgdata'"
     regexp: '^data_directory = .*'
-
-- name: configure md5 security other local  users
-  become: yes
-  lineinfile:
-    path: /etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf
-    regexp: '^local\s+all\s+all'
-    line: 'local	all		all						md5'
-
-- name: create .pgpass for the system user to save them from typing passwords
-  become: yes
-  template: src=pgpass.j2 dest="/home/{{ system_user }}/.pgpass" owner="{{ system_user }}" group="{{ system_user }}" mode=0600
 
 - name: restart postgres server
   become: yes

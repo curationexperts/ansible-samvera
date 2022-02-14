@@ -20,7 +20,7 @@ dbstuff = Hash[*File.read(config).split.find_all{|x| x=~/^DATABASE_.*/}.map{|x| 
 fedora_pid = Process.spawn("curl -s -X POST -d #{Dir.pwd}/fedora http://localhost:8080/fedora/rest/fcr:backup")
 tar_pid = Process.spawn("tar -czf derivatives/derivatives.tgz -C /opt/ derivatives")
 uploads_pid = Process.spawn("tar -czf derivatives/uploads.tgz -C /opt/uploads hyrax")
-system("su postgres -c 'pg_dump -C -Fc -d #{dbstuff['DATABASE_NAME']} > psql/pg.dump'", exception:true) 
+system("su postgres -c 'pg_dumpall -c -f psql/pg.dump'", exception:true) 
 reply=JSON.parse(%x(curl -s 'http://localhost:8983/solr/tenejo/replication?command=backup&location=#{Dir.pwd}/solr&name=tenejo'))
 abort "Solr backup failed: #{reply}" unless reply['status']=="OK"
 

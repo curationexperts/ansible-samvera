@@ -16,7 +16,7 @@
 - name: add samvera application user
   become: yes
   become_user: postgres
-  postgresql_user: db={{ project_name }} name=deploy priv=ALL role_attr_flags=SUPERUSER
+  postgresql_user: name=deploy role_attr_flags=SUPERUSER
   tags:
     - postgres
     - configure
@@ -24,7 +24,7 @@
 - name: add fedora application user
   become: yes
   become_user: postgres
-  postgresql_user: db={{ project_name }} name=tomcat priv=ALL role_attr_flags=SUPERUSER
+  postgresql_user: name=tomcat role_attr_flags=SUPERUSER
   tags:
     - postgres
     - configure

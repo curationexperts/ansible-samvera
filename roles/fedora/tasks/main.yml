@@ -44,6 +44,12 @@
   become: yes
   get_url: url=https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar owner=tomcat dest=/var/lib/tomcat9/lib/jaxb-api-2.3.1.jar timeout=100
 
+- name: create service override directory
+  become: yes
+  file: 
+    path: /etc/systemd/system/tomcat9.service.d
+    state: directory
+
 - name: create systemd configuration
   become: yes
   template: src=tomcat9.service dest=/etc/systemd/system/tomcat9.service.d/override.conf

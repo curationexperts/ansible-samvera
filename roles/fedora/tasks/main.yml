@@ -46,7 +46,7 @@
 
 - name: create systemd configuration
   become: yes
-  template: src=tomcat9.service dest=/lib/systemd/system/tomcat9.service backup=yes
+  template: src=tomcat9.service dest=/etc/systemd/system/tomcat9.service.d/override.conf
 
 - name: set port for tomcat
   become: yes

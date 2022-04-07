@@ -10,3 +10,14 @@
 - name: set rotation for system logs
   become: yes
   template: src=logrotate-sys.j2 dest=/etc/logrotate.d/rsyslog backup=yes
+
+- name: set up journald config dir
+  become: yes
+  file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+
+- name: set up journald disk usage
+  become: yes
+  template: src=diskusage.conf dest=/etc/systemd/journald.conf.d/00diskusage.conf owner=root group=root
+  notify: restart journald

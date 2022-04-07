@@ -1,0 +1,5 @@
+- name: restart journald
+  become: yes
+  service:
+    name: systemd-journald
+    state: restarted

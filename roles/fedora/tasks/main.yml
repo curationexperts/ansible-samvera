@@ -27,6 +27,10 @@
   file: owner=tomcat group=tomcat state=directory path=/opt/fedora-data
   become: yes
 
+- name: make catalina.out
+  file: owner=syslog group=adm state=file path=/var/log/tomcat9/catalina.out
+  become: yes
+
 - name: check fedora.war
   stat: path=/var/lib/tomcat9/webapps/fedora.war
   register: fedora_war

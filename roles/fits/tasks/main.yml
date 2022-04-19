@@ -8,12 +8,12 @@
 
 - name: ensure fits_version is set
   set_fact:
-    fits_version: '1.4.0'
+    fits_version: '1.5.1'
   when: fits_version is not defined
 
 - name: ensure fits_servlet_version is set
   set_fact:
-    fits_servlet_version: '1.2.0'
+    fits_servlet_version: '1.2.1'
   when: fits_servlet_version is not defined
 
 - name: setup install directory

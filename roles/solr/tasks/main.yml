@@ -14,6 +14,7 @@
     path: '{{ install_path }}'
     state: directory
 
+
 - name: download solr checksum
   become: yes
   get_url: url=https://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz.sha512 dest={{ install_path }}/solr-{{ solr_version }}.tgz.sha512 force=no
@@ -23,12 +24,19 @@
   shell: awk '{print $1}' {{ install_path }}/solr-{{ solr_version }}.tgz.sha512
   register: solr_sha512
 
+- name: ensure solrdata & log directory exists
+  become: yes
+  file:
+    path: '/opt/solrdata/logs'
+    state: directory
+
 - name: symlink solr logs to /var/log
   become: yes
   file:
     src: "/opt/solrdata/logs"
     dest: "/var/log/solr"
     state: link
+
 
 - name: symlink /opt/solrdata logs to /var/solr
   become: yes

@@ -58,7 +58,6 @@
     - automake
     - libtool
     - bison
-    - subversion
     - pkg-config
     - libcurl4-openssl-dev
     - libxvidcore-dev

@@ -23,6 +23,21 @@
   shell: awk '{print $1}' {{ install_path }}/solr-{{ solr_version }}.tgz.sha512
   register: solr_sha512
 
+- name: symlink solr logs to /var/log
+  become: yes
+  file:
+    src: "/opt/solrdata/logs"
+    dest: "/var/log/solr"
+    state: link
+
+- name: symlink /opt/solrdata logs to /var/solr
+  become: yes
+  file:
+    src: "/opt/solrdata"
+    dest: "/var/solr"
+    state: link
+
+
 - name: download solr tarball
   become: yes
   get_url: url=https://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="sha512:{{ solr_sha512.stdout }}"
@@ -117,9 +132,3 @@
     name: solr
     state: restarted
 
-- name: symlink solr logs to /var/log
-  become: yes
-  file:
-    src: "/var/solr/logs"
-    dest: "/var/log/solr"
-    state: link

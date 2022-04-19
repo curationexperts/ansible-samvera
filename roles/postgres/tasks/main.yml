@@ -43,6 +43,21 @@
     regexp: '^local\s+all\s+postgres'
     line: 'local       all             all                           peer'
 
+- name: create local users
+  become: yes
+  become_user: postgres
+  command: createuser -s {{ item }}
+  ignore_errors: true
+  with_items:
+    - tomcat
+    - deploy
+
+- name: create db
+  become: yes
+  become_user: postgres
+  command: createdb {{ project_name }}
+  ignore_errors: true
+
 - name: write new pgdata value
   become: yes
   lineinfile:

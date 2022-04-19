@@ -1,12 +1,12 @@
 ---
 - name: download openjpg source
   get_url:
-    url: https://downloads.sourceforge.net/project/openjpeg.mirror/{{ openjpg_ver }}/openjpeg-{{ openjpg_ver }}.tar.gz
+    url: https://github.com/uclouvain/openjpeg/archive/refs/tags/v{{ openjpg_ver }}.tar.gz
     dest: "imagemagick_sources/openjpeg-{{ openjpg_ver }}.tar.gz"
     force: no
 
 - name: unzip openjpg source
-  shell: tar zxvf openjpeg-{{ openjpg_ver }}.tar.gz creates=openjpeg-version.{{ openjpg_ver }} warn=no
+  shell: tar zxvf openjpeg-{{ openjpg_ver }}.tar.gz creates=openjpeg-{{ openjpg_ver }} warn=no
   args:
     chdir: imagemagick_sources
 

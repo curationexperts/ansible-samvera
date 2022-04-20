@@ -167,17 +167,12 @@
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
-- name: symlink solrconfig from code to solr
+- name: create core
   become: yes
-  file: src=/opt/{{ project_name }}/current/solr/config/solrconfig.xml dest=/opt/solrdata/{{ project_name }}/conf/solrconfig.xml state=link force=yes
-
-- name: symlink schema from code to solr - managed-schema
-  become: yes
-  file: src=/opt/{{ project_name }}/current/solr/config/schema.xml dest=/opt/solrdata/{{ project_name }}/conf/managed-schema state=link force=yes
-
-- name: symlink schema from git checkout to solr - schema.xml
-  become: yes
-  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/opt/solrdata/{{ project_name }}/conf/schema.xml state=link force=yes
+  become_user: solr
+  command: bin/solr create_core -d /opt/{{ project_name }}/current/solr/config -c {{ project_name }} -p 8983
+  args:
+    chdir: /opt/solr 
 
 - name: restart solr
   become: true

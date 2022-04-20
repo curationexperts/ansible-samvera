@@ -68,7 +68,7 @@
   become_user: solr
   copy:
     src: log4j.properties
-    dest: /var/solr/log4j.properties
+    dest: /opt/solrdata/log4j.properties
     mode: 0640
 
 - name: put in place Solr limits.d configuration

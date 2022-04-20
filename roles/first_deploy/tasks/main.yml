@@ -144,19 +144,19 @@
 
 - name: create solr config dir
   become: yes
-  file: path=/var/solr/data/{{ project_name }}/conf owner=solr group=solr state=directory
+  file: path=/opt/solrdata/{{ project_name }}/conf owner=solr group=solr state=directory
 
 - name: temporary symlink schema from git checkout to solr - managed-schema
   become: yes
-  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/managed-schema state=link force=yes
+  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/opt/solrdata/{{ project_name }}/conf/managed-schema state=link force=yes
 
 - name: temporary symlink schema from git checkout to solr - schema.xml
   become: yes
-  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes
+  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/opt/solrdata/{{ project_name }}/conf/schema.xml state=link force=yes
 
 - name: temporary symlink solrconfig from git checkout to solr
   become: yes
-  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/solrconfig.xml dest=/var/solr/data/{{ project_name }}/conf/solrconfig.xml state=link force=yes
+  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/solrconfig.xml dest=/opt/solrdata/{{ project_name }}/conf/solrconfig.xml state=link force=yes
 
 - name: restart solr
   become: true
@@ -169,15 +169,15 @@
 
 - name: symlink solrconfig from code to solr
   become: yes
-  file: src=/opt/{{ project_name }}/current/solr/config/solrconfig.xml dest=/var/solr/data/{{ project_name }}/conf/solrconfig.xml state=link force=yes
+  file: src=/opt/{{ project_name }}/current/solr/config/solrconfig.xml dest=/opt/solrdata/{{ project_name }}/conf/solrconfig.xml state=link force=yes
 
 - name: symlink schema from code to solr - managed-schema
   become: yes
-  file: src=/opt/{{ project_name }}/current/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/managed-schema state=link force=yes
+  file: src=/opt/{{ project_name }}/current/solr/config/schema.xml dest=/opt/solrdata/{{ project_name }}/conf/managed-schema state=link force=yes
 
 - name: symlink schema from git checkout to solr - schema.xml
   become: yes
-  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes
+  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/opt/solrdata/{{ project_name }}/conf/schema.xml state=link force=yes
 
 - name: restart solr
   become: true

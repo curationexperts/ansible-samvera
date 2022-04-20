@@ -34,6 +34,10 @@
   become: yes
   shell: passenger-install-apache2-module --auto creates={{ system_gem_path.stdout }}/gems/passenger-{{ passenger_ver }}/buildout/apache2/mod_passenger.so
 
+- name: install passenger agent
+  become: yes
+  shell: passenger-config install-agent creates={{ system_gem_path.stdout }}/gems/passenger-{{ passenger_ver }}/buildout/support-binaries/PassengerAgent
+
 - name: generate passenger.conf file
   become: yes
   shell: bash -c "passenger-install-apache2-module --snippet > /etc/apache2/conf-enabled/passenger.conf" creates=/etc/apache2/conf-enabled/passenger.conf

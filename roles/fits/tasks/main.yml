@@ -13,7 +13,7 @@
 
 - name: ensure fits_servlet_version is set
   set_fact:
-    fits_servlet_version: '1.2.1'
+    fits_servlet_version: '1.2.3'
   when: fits_servlet_version is not defined
 
 - name: setup install directory
@@ -80,7 +80,7 @@
 - name: download fits servlet version {{ fits_servlet_version }}
   become: yes
   get_url:
-    url: 'https://projects.iq.harvard.edu/files/fits/files/fits-{{ fits_servlet_version }}.war'
+    url: 'https://github.com/harvard-lts/FITSservlet/releases/download/{{ fits_servlet_version }}/fits-service-{{ fits_servlet_version }}.war'
     owner: tomcat
     group: tomcat
     dest: '{{ install_path }}/fits-{{ fits_servlet_version }}.war'

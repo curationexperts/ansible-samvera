@@ -11,6 +11,13 @@
   set_fact:
     install_path: /home/{{ ansible_ssh_user }}/install
 
+- name: fix tomcat defaults file
+  become: true
+  lineinfile:
+    path: /etc/default/tomcat9
+    regexp: '^JAVA_OPTS='
+    line: JAVA_OPTS="${JAVA_OPTS} -Djava.awt.headless=true"
+
 - name: ensure install directory exists
   file:
     path: '{{ install_path }}'

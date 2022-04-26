@@ -68,10 +68,21 @@
   lineinfile: dest=/usr/local/lib/fits-{{ fits_version }}/fits-env.sh regexp=^FITS_HOME line=FITS_HOME="/usr/local/lib/fits-{{ fits_version }}" state=present
   when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
 
+- name: set shared libs in catalina.properties
+  become: yes
+  lineinfile: dest=/etc/tomcat9/catalina.properties regexp="^shared.loader=" line="shared.loader=\"/usr/local/lib/fits-{{ fits_version }}/lib/*.jar\"" state=present
+  when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
+
 - name: symlink fits-env.sh alias
   become: yes
   file: src=/usr/local/lib/fits-{{ fits_version }}/fits-env.sh dest=/usr/local/bin/fits-env.sh state=link
   when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
+
+- name: replace log4j.properties
+  become: true
+  copy:
+    src=log4j.properties
+    dest=/usr/local/lib/fits-{{ fits_version }}/log4j.properties
 
 - name: install servlet container package
   become: yes

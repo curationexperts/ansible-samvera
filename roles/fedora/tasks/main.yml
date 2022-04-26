@@ -11,13 +11,6 @@
   set_fact:
     install_path: /home/{{ ansible_ssh_user }}/install
 
-- name: fix tomcat defaults file
-  become: true
-  lineinfile:
-    path: /etc/default/tomcat9
-    regexp: '^JAVA_OPTS='
-    line: JAVA_OPTS="${JAVA_OPTS} -Djava.awt.headless=true"
-
 - name: ensure install directory exists
   file:
     path: '{{ install_path }}'
@@ -41,6 +34,10 @@
 - name: check fedora.war
   stat: path=/var/lib/tomcat9/webapps/fedora.war
   register: fedora_war
+
+- name: set defaults
+  become: true
+  template: src=defaults.j2 dest=/etc/default/tomcat9
 
 - name: copy over fedora.war
   become: yes

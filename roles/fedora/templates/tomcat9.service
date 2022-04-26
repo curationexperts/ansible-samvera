@@ -1,5 +1,2 @@
 [Service]
-Environment="JAVA_OPTS=-Djava.awt.headless=true -Dlog4j2.formatMsgNoLookups=true -Dfcrepo.modeshape.configuration=classpath:/config/file-simple/repository.json -Dfcrepo.home=/opt/fedora-data"
-ReadWritePaths=/tmp
-ReadWritePaths=/var/log/tomcat9
-ReadWritePaths=/opt
+ReadWritePaths=/opt /tmp /var/log/tomcat9 /var/lib/tomcat9 /usr/local/lib/fits-1.5.1 /var/lib/logs

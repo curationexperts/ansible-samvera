@@ -17,6 +17,10 @@
   become: yes
   file: path=/opt/{{ project_name }} owner=deploy group=deploy state=directory
 
+- name: "create derivatives output dir"
+  become: yes
+  file: path=/opt/derivatives owner=deploy group=deploy state=directory
+
 - name: generate rails secret
   command: openssl rand -hex 64
   register: rails_secret

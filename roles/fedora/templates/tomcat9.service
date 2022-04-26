@@ -1,2 +1,2 @@
 [Service]
-ReadWritePaths=/opt /tmp /var/log/tomcat9 /var/lib/tomcat9 /usr/local/lib/fits-1.5.1 /var/lib/logs
+ReadWritePaths=/opt /tmp /var/log/tomcat9 /var/lib/tomcat9 -/usr/local/lib/fits-1.5.1 -/var/lib/logs

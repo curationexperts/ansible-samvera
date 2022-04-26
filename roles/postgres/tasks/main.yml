@@ -69,6 +69,12 @@
     regexp: '^local\s+all\s+postgres'
     line: 'local       all             all                           peer'
 
+- name: configure trust security for tomcat  on localhost
+  become: yes
+  lineinfile:
+    path: /etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf
+    line: 'host    fcrepo          tomcat          127.0.0.1/32            trust'
+
 - name: enable postgresql system service and restart systemd daemon
   become: yes
   systemd:

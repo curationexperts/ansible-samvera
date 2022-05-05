@@ -54,6 +54,13 @@
     name: collectd
     enabled: yes
     daemon_reload: yes
+    
+- name: link shared data
+  become: yes
+  file:
+    src: /opt/collectd/share/collectd
+    dest: /usr/share/collectd
+    state: link
 
 - name: start collectd system service
   become: yes

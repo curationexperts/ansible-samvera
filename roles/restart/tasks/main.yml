@@ -41,6 +41,13 @@
     enabled: yes
     state: restarted
 
+- name: restart syslog
+  become: yes
+  service:
+    name: syslog
+    enabled: yes
+    state: restarted
+
 
 # not everything has cantaloupe. this is an ansible+ubuntu 2.9 bug resolved in 2.10
 # so we can't conditionally restart yet.

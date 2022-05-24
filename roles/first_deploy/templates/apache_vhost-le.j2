@@ -1,0 +1,46 @@
+<IfModule mod_ssl.c>
+<VirtualHost *:443>
+  ServerName {{ hostname }}.{{ domain }}
+  <IfModule mod_rewrite.c>
+    RewriteEngine On
+  </IfModule>
+  PassengerAppEnv production
+  DocumentRoot /opt/tenejo/current/public
+  AllowEncodedSlashes NoDecode
+
+  <Directory /opt/tenejo/current/public>
+    Options -MultiViews
+    Require all granted
+  </Directory>
+
+  <LocationMatch "/cantaloupe/">
+    # Only allow access to Cantaloupe via https
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule (.*) https://%{HTTP_HOST}%{REQUEST_URI}
+    Header always set Strict-Transport-Security "max-age=63072000; includeSubdomains;"
+
+    RequestHeader set X-Forwarded-Proto HTTPS
+    RequestHeader set X-Forwarded-Port 443
+    RequestHeader set X-Forwarded-Path /cantaloupe
+
+    ProxyPass http://localhost:8182/ nocanon
+    ProxyPassReverse http://localhost:8182/
+    ProxyPassReverseCookiePath / curate-cd.{{ domain }}
+    ProxyPassReverseCookieDomain localhost:8182 curate-cd.{{ domain }}
+    ProxyPreserveHost off
+  </LocationMatch>
+
+  # Settings compatible with https://github.com/capistrano/maintenance
+  <IfModule mod_rewrite.c>
+    RewriteEngine On
+    ErrorDocument 503 /system/maintenance.html
+    # Return 503 error if the maintenance page exists.
+    RewriteCond %{DOCUMENT_ROOT}/system/maintenance.html -f
+    RewriteCond %{SCRIPT_FILENAME} !maintenance.html
+    RewriteRule ^.*$ - [L,R=503]
+  </IfModule>
+
+
+</VirtualHost>
+</IfModule>

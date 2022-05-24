@@ -149,6 +149,21 @@
   become: yes
   template: src=apache_vhost.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}.conf owner=root group=root backup=no
 
+- name: create apache vhostsssl file
+  become: yes
+  template: src=apache_vhost-le.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}-le-ssl.conf owner=root group=root backup=no
+
+- name: install certbot
+  become: yes
+  package: name={{ item }} state=present
+  with_items:
+    - certbot
+    - python3-certbot-apache
+
+- name: set up letsencrypt
+  become: yes
+  command: certbot --noninteractive -m sysadmin@curationexperts.com --redirect --agree-tos --apache run -d {{ hostname }}.{{ domain  }}
+
 - name: restart apache to load new virtual host
   become: yes
   service: name=apache2 state=restarted

@@ -1,30 +1,10 @@
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# THIS IS AN ANSIBLE-MANAGED FILE. ALL CHANGES WILL BE OVERRIDEN IF CONFIG
-# MANAGER IS RUN. MAKE SURE YOU REFLECT CHANGES IN THE ANSIBLE SCRIPTS IF
-# THEY SHOULD BE MADE PERMANENT.
-# !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 <VirtualHost *:80>
-  PassengerAppEnv production
-  # !!! Be sure to point DocumentRoot to 'public'!
-  DocumentRoot /opt/{{ project_name }}/current/public
-  # allows forward slashes for IIIF
-  AllowEncodedSlashes NoDecode
-
-  # Settings compatible with https://github.com/capistrano/maintenance
+  ServerName {{ hostname }}.{{ domain }}
   <IfModule mod_rewrite.c>
     RewriteEngine On
-    ErrorDocument 503 /system/maintenance.html
-    # Return 503 error if the maintenance page exists.
-    RewriteCond %{DOCUMENT_ROOT}/system/maintenance.html -f
-    RewriteCond %{SCRIPT_FILENAME} !maintenance.html
-    RewriteRule ^.*$ - [L,R=503]
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R=301,L]
   </IfModule>
-
-  <Directory /opt/{{ project_name }}/current/public>
-        # MultiViews must be turned off.
-        Options -MultiViews
-        # Uncomment this if you're on Apache >= 2.4:
-        Require all granted
-  </Directory>
+RewriteCond %{SERVER_NAME} ={{ hostname }}.{{ domain }}
+RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
 </VirtualHost>

@@ -1,10 +1,5 @@
+ServerName {{ hostname }}.{{ domain }}
 <VirtualHost *:80>
-  ServerName {{ hostname }}.{{ domain }}
-  <IfModule mod_rewrite.c>
-    RewriteEngine On
-    RewriteCond %{HTTPS} off
-    RewriteRule ^(.*)$ https://%{HTTP_HOST}$1 [R=301,L]
-  </IfModule>
-RewriteCond %{SERVER_NAME} ={{ hostname }}.{{ domain }}
-RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+  RewriteCond %{SERVER_NAME} ={{ hostname }}.{{ domain }}
+  RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
 </VirtualHost>

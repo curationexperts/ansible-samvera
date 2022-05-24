@@ -1,6 +1,6 @@
+ServerName {{ hostname }}.{{ domain }}
 <IfModule mod_ssl.c>
 <VirtualHost *:443>
-  ServerName {{ hostname }}.{{ domain }}
   <IfModule mod_rewrite.c>
     RewriteEngine On
   </IfModule>
@@ -40,7 +40,6 @@
     RewriteCond %{SCRIPT_FILENAME} !maintenance.html
     RewriteRule ^.*$ - [L,R=503]
   </IfModule>
-
-
+  #letsencrypt will stick SSL cert paths and so on down here
 </VirtualHost>
 </IfModule>

@@ -72,7 +72,6 @@ Here is an example playbook that uses these roles (plus a few extra internal-to-
     - { role: solr-schema }
     - { role: first_deploy }
     - { role: dce_ssl }
-    - { role: force_ssl }
     - { role: restart }
     - { role: splunkuforwarder }
 ```

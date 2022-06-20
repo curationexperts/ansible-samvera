@@ -78,6 +78,7 @@
   become: yes
   command: a2enmod rewrite
 
+
 - name: restart apache
   become: yes
   service:

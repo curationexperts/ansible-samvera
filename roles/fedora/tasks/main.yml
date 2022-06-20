@@ -35,6 +35,10 @@
   stat: path=/var/lib/tomcat9/webapps/fedora.war
   register: fedora_war
 
+- name: set defaults
+  become: true
+  template: src=defaults.j2 dest=/etc/default/tomcat9
+
 - name: copy over fedora.war
   become: yes
   command: cp {{ install_path }}/fcrepo-webapp-{{ fedora_version }}.war /var/lib/tomcat9/webapps/fedora.war

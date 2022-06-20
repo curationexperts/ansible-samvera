@@ -17,6 +17,15 @@
   become: yes
   file: path=/opt/{{ project_name }} owner=deploy group=deploy state=directory
 
+- name: "create /var/lib/logs"
+  tags: derp
+  become: yes
+  file: path=/var/lib/logs owner=tomcat group=adm state=directory
+
+- name: "create derivatives output dir"
+  become: yes
+  file: path=/opt/derivatives owner=deploy group=deploy state=directory
+
 - name: generate rails secret
   command: openssl rand -hex 64
   register: rails_secret
@@ -48,21 +57,34 @@
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
+- name: install bundle
+  shell: bundle install --quiet
+  args:
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
+
 - name: install ed25519 support
-  become_user: ubuntu
+  become: yes
   gem:
     name: ed25519
     version: 1.2.4
+    user_install: false
     state: present
-    user_install: yes
 
 - name: install bcrypt_pbkdf support
-  become_user: ubuntu
+  become: yes
   gem:
     name: bcrypt_pbkdf
     version: 1.1.0
     state: present
-    user_install: yes
+    user_install: false
+
+- name: install capistrano
+  become: yes
+  gem:
+    name: capistrano
+    version: 3.17.0
+    state: present
+    user_install: false
 
 - name: find bundler version from Gemfile.lock
   shell: grep -A 1 "BUNDLED WITH" Gemfile.lock
@@ -74,10 +96,6 @@
   set_fact:
     bundler_version: "{{ bundler_version_phrase.stdout | regex_replace('BUNDLED WITH\n   (.*)', '\\1') }}"
 
-- name: display bundler version
-  debug:
-    msg: "{{ bundler_version }}"
-
 - name: check if bundler {{ bundler_version }} is installed
   shell: bundler --version | grep {{ bundler_version }}
   ignore_errors: true
@@ -85,34 +103,14 @@
 
 - name: install bundler if it-s not already there
   block:
-    # bundler is a system gem in ruby 2.6 and later, so need to move it in order to
-    # uninstall default bundler and install project bundler
-
-    - name: set Gem default directory
-      shell: ruby -e 'puts Gem.default_dir'
-      register: gem_directory
-
-    - name: move system bundler
-      become: yes
-      shell: mv -v "{{ gem_directory.stdout }}"/specifications/default/bundler-*.gemspec "{{ gem_directory.stdout }}"/specifications/
-      ignore_errors: true
-
-    - name: remove system bundler
-      become: yes
-      shell: y | gem uninstall bundler --force
-
     - name: install project bundler
       become: yes
       shell: gem install bundler -v "{{ bundler_version }}"
   when: bundler_preinstalled.failed
 
-- name: install gems (bundle install)
-  become: yes
-  shell: bundle install
-  args:
-    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
-  # Set up a keypair so the ansible user can connect as the capistrano deploy user
+
+  # Set up a key so the ansible user can connect as the capistrano deploy user
 - name: create deployment keypair for connection user
   user:
       name: "{{ ansible_ssh_user }}"
@@ -170,19 +168,19 @@
 
 - name: create solr config dir
   become: yes
-  file: path=/var/solr/data/{{ project_name }}/conf owner=solr group=solr state=directory
+  file: path=/opt/solrdata/{{ project_name }}/conf owner=solr group=solr state=directory
 
 - name: temporary symlink schema from git checkout to solr - managed-schema
   become: yes
-  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/managed-schema state=link force=yes
+  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/opt/solrdata/{{ project_name }}/conf/managed-schema state=link force=yes
 
 - name: temporary symlink schema from git checkout to solr - schema.xml
   become: yes
-  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes
+  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/opt/solrdata/{{ project_name }}/conf/schema.xml state=link force=yes
 
 - name: temporary symlink solrconfig from git checkout to solr
   become: yes
-  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/solrconfig.xml dest=/var/solr/data/{{ project_name }}/conf/solrconfig.xml state=link force=yes
+  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/solrconfig.xml dest=/opt/solrdata/{{ project_name }}/conf/solrconfig.xml state=link force=yes
 
 - name: restart solr
   become: true
@@ -193,17 +191,29 @@
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
-- name: symlink solrconfig from code to solr
+- name: create core
   become: yes
-  file: src=/opt/{{ project_name }}/current/solr/config/solrconfig.xml dest=/var/solr/data/{{ project_name }}/conf/solrconfig.xml state=link force=yes
+  become_user: solr
+  command: bin/solr create_core -d /opt/{{ project_name }}/current/solr/config -c {{ project_name }} -p 8983
+  ignore_errors: yes
+  args:
+    chdir: /opt/solr 
 
-- name: symlink schema from code to solr - managed-schema
+- name: create default admin sets
   become: yes
-  file: src=/opt/{{ project_name }}/current/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/managed-schema state=link force=yes
+  become_user: deploy
+  shell: RAILS_ENV=production bundle exec rails hyrax:default_admin_set:create
+  args:
+    chdir: /opt/{{ project_name }}/current
 
-- name: symlink schema from git checkout to solr - schema.xml
+- name: create workflows
   become: yes
-  file: src=/home/{{ ansible_ssh_user }}/{{ project_name }}/solr/config/schema.xml dest=/var/solr/data/{{ project_name }}/conf/schema.xml state=link force=yes
+  become_user: deploy
+  shell: RAILS_ENV=production bundle exec rails hyrax:workflow:load
+  args:
+    chdir: /opt/{{ project_name }}/current
+
+
 
 - name: restart solr
   become: true

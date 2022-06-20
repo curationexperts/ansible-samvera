@@ -8,12 +8,12 @@
 
 - name: ensure fits_version is set
   set_fact:
-    fits_version: '1.4.0'
+    fits_version: '1.5.1'
   when: fits_version is not defined
 
 - name: ensure fits_servlet_version is set
   set_fact:
-    fits_servlet_version: '1.2.0'
+    fits_servlet_version: '1.2.3'
   when: fits_servlet_version is not defined
 
 - name: setup install directory
@@ -68,10 +68,28 @@
   lineinfile: dest=/usr/local/lib/fits-{{ fits_version }}/fits-env.sh regexp=^FITS_HOME line=FITS_HOME="/usr/local/lib/fits-{{ fits_version }}" state=present
   when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
 
+- name: set shared libs in catalina.properties
+  become: yes
+  lineinfile: dest=/etc/tomcat9/catalina.properties regexp="^shared.loader=" line="shared.loader=\"/usr/local/lib/fits-{{ fits_version }}/lib/*.jar\"" state=present
+  when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
+
+- name: set defaults into tomcat
+  become: yes
+  lineinfile:
+    dest: /etc/default/tomcat9
+    line: "JAVA_OPTS=\"${JAVA_OPTS} -Dfits.home=/usr/local/lib/fits-{{ fits_version }}\""
+    state: present
+
 - name: symlink fits-env.sh alias
   become: yes
   file: src=/usr/local/lib/fits-{{ fits_version }}/fits-env.sh dest=/usr/local/bin/fits-env.sh state=link
   when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
+
+- name: replace log4j.properties
+  become: true
+  copy:
+    src=log4j.properties
+    dest=/usr/local/lib/fits-{{ fits_version }}/log4j.properties
 
 - name: install servlet container package
   become: yes
@@ -80,7 +98,7 @@
 - name: download fits servlet version {{ fits_servlet_version }}
   become: yes
   get_url:
-    url: 'https://projects.iq.harvard.edu/files/fits/files/fits-{{ fits_servlet_version }}.war'
+    url: 'https://github.com/harvard-lts/FITSservlet/releases/download/{{ fits_servlet_version }}/fits-service-{{ fits_servlet_version }}.war'
     owner: tomcat
     group: tomcat
     dest: '{{ install_path }}/fits-{{ fits_servlet_version }}.war'

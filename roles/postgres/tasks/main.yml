@@ -36,12 +36,8 @@
   become: yes
   file: owner=postgres group=postgres state=directory path=/opt/pg_backups
 
-- name: configure peer security for local users
-  become: yes
-  lineinfile:
-    path: /etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf
-    regexp: '^local\s+all\s+postgres'
-    line: 'local       all             all                           peer'
+
+
 
 - name: write new pgdata value
   become: yes
@@ -66,9 +62,48 @@
   become: yes
   template: src=override.conf dest=/etc/systemd/system/postgresql.service.d/override.conf owner=root group=root mode=0755
 
+- name: configure peer security for local users
+  become: yes
+  lineinfile:
+    path: /etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf
+    regexp: '^local\s+all\s+postgres'
+    line: 'local       all             all                           peer'
+
+- name: configure trust security for tomcat  on localhost
+  become: yes
+  lineinfile:
+    insertafter: '^# TYPE  DATABASE        USER            ADDRESS                 METHOD'
+    path: /etc/postgresql/{{ postgres_version.stdout }}/main/pg_hba.conf
+    line: 'host    fcrepo          tomcat          127.0.0.1/32            trust'
+
 - name: enable postgresql system service and restart systemd daemon
   become: yes
   systemd:
     name: postgresql
     enabled: yes
     daemon_reload: yes
+
+- name: restart postgres server
+  become: yes
+  service: name=postgresql enabled=yes state=restarted
+
+- name: create local users
+  become: yes
+  become_user: postgres
+  command: createuser -s {{ item }}
+  ignore_errors: true
+  with_items:
+    - tomcat
+    - deploy
+
+- name: create rails db
+  become: yes
+  become_user: postgres
+  command: createdb -O deploy {{ project_name }}
+  ignore_errors: true
+
+- name: create fcrepo db
+  become: yes
+  become_user: postgres
+  command: createdb -O tomcat fcrepo
+  ignore_errors: true

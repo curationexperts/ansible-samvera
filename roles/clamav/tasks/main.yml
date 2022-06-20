@@ -20,6 +20,7 @@
     - libbz2-dev
     - libpcre2-dev
     - ncurses-dev
+    - apparmor-utils
 
 - name: install clamav packages for Debian based systems
   package: name={{ item }} state=present
@@ -35,3 +36,7 @@
 - name: update clamav database
   become: yes
   shell: systemctl stop clamav-freshclam && freshclam -F
+
+- name: turn off apparmor for clamd
+  become: yes
+  command: aa-disable /usr/sbin/clamd

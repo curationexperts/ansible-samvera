@@ -1,6 +1,7 @@
 ---
 
 #### fedora defaults
+configure_fedora: True
 fedora_config_file: /etc/default/tomcat9
 fedora_database: jdbc-postgresql
 # tomcat PermGen memory (for loading java classes, etc.)
@@ -19,6 +20,7 @@ solr_min_mem: 512
 solr_max_mem: 1024
 
 #### cantaloupe defaults
+configure_cantaloupe: True
 cantaloupe_version: '5.0.3'
 cantaloupe_cache_dir: /var/cache/cantaloupe
 cantaloupe_log_dir: /var/log/cantaloupe

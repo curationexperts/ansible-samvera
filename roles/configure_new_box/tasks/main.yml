@@ -1,3 +1,9 @@
+- name: Ensure backup script directory exists
+  become: yes
+  file:
+    path: /opt/pg_backups/pg_daily_double
+    state: directory
+
 - name: add pg_backups script
   become: yes
   template: src=pg_backups.j2 dest=/opt/pg_backups/pg_daily_double owner=root group=root mode=0755
@@ -37,33 +43,37 @@
     - postgres
     - configure
 
-- name: create fcrepo database
-  postgresql_db: name=fcrepo state=present login_user=postgres owner=tomcat
-  become: yes
-  become_user: postgres
-  tags:
-    - postgres
-    - fedora
-    - configure
+- name: configure Fedora
+  when: configure_fedora == True
+  block: 
+  - name: create fcrepo database
+    postgresql_db: name=fcrepo state=present login_user=postgres owner=tomcat
+    become: yes
+    become_user: postgres
+    tags:
+      - postgres
+      - fedora
+      - configure
 
-- name: create Fedora config and java options
-  become: yes
-  template:
-    src: tomcat9.j2
-    dest: "{{ fedora_config_file }}"
-    owner: tomcat
-    group: tomcat
-    backup: yes
-  tags:
-    - fedora
-    - configure
+  - name: create Fedora config and java options
+    become: yes
+    template:
+      src: tomcat9.j2
+      dest: "{{ fedora_config_file }}"
+      owner: tomcat
+      group: tomcat
+      backup: yes
+    tags:
+      - fedora
+      - configure
 
-- name: restart Fedora servlet
-  become: yes
-  systemd: name=tomcat9 state=restarted daemon_reload=yes
-  tags:
-    - fedora
-    - configure
+  - name: restart Fedora servlet
+    become: yes
+    systemd: name=tomcat9 state=restarted daemon_reload=yes
+    tags:
+      - fedora
+      - configure
+  # block end - configure Fedora
 
 - name: create default solr collection
   become: yes
@@ -90,28 +100,26 @@
     - capistrano
     - configure
 
-- name: write cantaloupe config file
-  become: yes
-  template:
-    src: ansible-samvera/roles/cantaloupe/templates/cantaloupe.properties
-    dest: /opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe.properties
-    owner: cantaloupe
-    group: cantaloupe
-    mode: 0644
-  tags:
-    - cantaloupe
-    - configure
+- name: configure Cantaloupe
+  when: configure_cantaloupe == True
+  block:
+  - name: write cantaloupe config file
+    become: yes
+    template:
+      src: ansible-samvera/roles/cantaloupe/templates/cantaloupe.properties
+      dest: /opt/cantaloupe-{{ cantaloupe_version }}/cantaloupe.properties
+      owner: cantaloupe
+      group: cantaloupe
+      mode: 0644
+    tags:
+      - cantaloupe
+      - configure
 
-- name: (re)start cantaloupe
-  become: yes
-  shell: systemctl restart cantaloupe.service
-  tags:
-    - cantaloupe
-    - configure
+  - name: (re)start cantaloupe
+    become: yes
+    shell: systemctl restart cantaloupe.service
+    tags:
+      - cantaloupe
+      - configure
+  # end block - configure Cantaloupe
 
-- name: configure collectd
-  become: yes
-  template: src=collectd.conf.j2 dest=/opt/collectd/etc/collectd.conf owner=root group=root backup=no
-  tags:
-    - collectd
-    - configure

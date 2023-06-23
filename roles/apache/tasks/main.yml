@@ -76,12 +76,15 @@
 
 - name: remove default apache site
   become: yes
-  file: path=/etc/apache2/sites-enabled/000-default.conf state=absent
+  command: a2dissite 000-default
 
 - name: enable rewrite module
   become: yes
   command: a2enmod rewrite
 
+- name: enable ssl module
+  become: yes
+  command: a2enmod ssl
 
 - name: restart apache
   become: yes

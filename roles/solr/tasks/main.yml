@@ -14,10 +14,19 @@
     path: '{{ install_path }}'
     state: directory
 
+- name: set solr archive for versions before 9.0
+  set_fact:
+    solr_archive_path: https://archive.apache.org/dist/lucene/solr
+    when: solr_version is version('9.0', '<')
+
+- name: set solr archive for versions 9.0 and above
+  set_fact:
+    solr_archive_path: https://archive.apache.org/dist/solr/solr
+  when: solr_version is version('9.0', '>=')
 
 - name: download solr checksum
   become: yes
-  get_url: url=https://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz.sha512 dest={{ install_path }}/solr-{{ solr_version }}.tgz.sha512 force=no
+  get_url: url={{solr_archive_path}}/{{ solr_version }}/solr-{{ solr_version }}.tgz.sha512 dest={{ install_path }}/solr-{{ solr_version }}.tgz.sha512 force=no
 
 - name: read solr checksum
   become: yes
@@ -37,7 +46,6 @@
     dest: "/var/log/solr"
     state: link
 
-
 - name: symlink /opt/solrdata logs to /var/solr
   become: yes
   file:
@@ -45,10 +53,9 @@
     dest: "/var/solr"
     state: link
 
-
 - name: download solr tarball
   become: yes
-  get_url: url=https://archive.apache.org/dist/lucene/solr/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="sha512:{{ solr_sha512.stdout }}"
+  get_url: get_url: url={{solr_archive_path}}/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="sha512:{{ solr_sha512.stdout }}"
 
 - name: untar solr tarball
   become: yes
@@ -65,10 +72,11 @@
 
 - name: configure solr loggers
   become: yes
-  become_user: solr
   copy:
     src: log4j.properties
     dest: /opt/solrdata/log4j.properties
+    owner: solr
+    group: solr
     mode: 0640
 
 - name: put in place Solr limits.d configuration
@@ -127,16 +135,10 @@
     dest: /etc/systemd/system/solr.service
     mode: 0644
 
-- name: enable solr system service
+- name: Reload configs, enable solr system service, and restart
   become: yes
   systemd:
     name: solr
     enabled: yes
     daemon_reload: yes
-
-- name: restart solr system service
-  become: yes
-  systemd:
-    name: solr
     state: restarted
-

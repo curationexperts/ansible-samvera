@@ -55,7 +55,7 @@
 
 - name: download solr tarball
   become: yes
-  get_url: get_url: url={{solr_archive_path}}/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="sha512:{{ solr_sha512.stdout }}"
+  get_url: url={{solr_archive_path}}/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="sha512:{{ solr_sha512.stdout }}"
 
 - name: untar solr tarball
   become: yes
@@ -135,7 +135,7 @@
     dest: /etc/systemd/system/solr.service
     mode: 0644
 
-- name: Reload configs, enable solr system service, and restart
+- name: Enable solr system service, reload systemd configs, and restart Solr
   become: yes
   systemd:
     name: solr

@@ -5,6 +5,21 @@
 # installs solr in production mode
 #
 
+- name: check for existing solr
+  uri: 
+    url: http://localhost:8983/solr/admin/info/system 
+    return_content: true
+  register: solr_info
+  ignore_errors: true
+  
+- name: save running Solr version
+  set_fact:
+    running_version: "{{ solr_info.json.lucene['solr-spec-version'] | default('none') }}"
+  
+- name: installed Solr version
+  debug:
+    var: running_version
+
 - name: setup install directory
   set_fact:
     install_path: /home/{{ ansible_ssh_user }}/install
@@ -24,121 +39,28 @@
     solr_archive_path: https://archive.apache.org/dist/solr/solr
   when: solr_version is version('9.0', '>=')
 
-- name: download solr checksum
-  become: yes
-  get_url: url={{solr_archive_path}}/{{ solr_version }}/solr-{{ solr_version }}.tgz.sha512 dest={{ install_path }}/solr-{{ solr_version }}.tgz.sha512 force=no
+- name: get solr checksum
+  uri:
+    url: "{{solr_archive_path}}/{{ solr_version }}/solr-{{ solr_version }}.tgz.sha512"
+    return_content: true
+  register: solr_checksum
 
-- name: read solr checksum
-  become: yes
-  shell: awk '{print $1}' {{ install_path }}/solr-{{ solr_version }}.tgz.sha512
-  register: solr_sha512
+- name: download solr {{ solr_version }} tarball
+  get_url: 
+    url: "{{solr_archive_path}}/{{ solr_version }}/solr-{{ solr_version }}.tgz"
+    dest: "{{ install_path }}/solr-{{ solr_version }}.tgz"
+    force: no
+    checksum: "sha512:{{ solr_checksum.content.split(' ')[0] }}"
 
-- name: ensure solrdata & log directory exists
-  become: yes
-  file:
-    path: '/opt/solrdata/logs'
-    state: directory
+- name: extract solr service installer
+  unarchive: 
+    src: "{{ install_path }}/solr-{{ solr_version }}.tgz"
+    dest: "{{ install_path }}/"
+    include: "solr-{{ solr_version}}/bin/install_solr_service.sh"
+    creates: "{{ install_path }}/solr-{{ solr_version }}/bin/install_solr_service.sh"
+    copy: no
 
-- name: symlink solr logs to /var/log
+- name: run solr service install script
   become: yes
-  file:
-    src: "/opt/solrdata/logs"
-    dest: "/var/log/solr"
-    state: link
-
-- name: symlink /opt/solrdata logs to /var/solr
-  become: yes
-  file:
-    src: "/opt/solrdata"
-    dest: "/var/solr"
-    state: link
-
-- name: download solr tarball
-  become: yes
-  get_url: url={{solr_archive_path}}/{{ solr_version }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/solr-{{ solr_version }}.tgz force=no checksum="sha512:{{ solr_sha512.stdout }}"
-
-- name: untar solr tarball
-  become: yes
-  unarchive: src={{ install_path }}/solr-{{ solr_version }}.tgz dest={{ install_path }}/ creates={{ install_path }}/solr-{{ solr_version }}/bin/solr copy=no
-
-- name: check if standalone solr is installed
-  stat: path=/etc/default/solr.in.sh
-  register: solr_init_script
-
-- name: run standalone solr service install script
-  become: yes
-  shell: bash {{ install_path }}/solr-{{ solr_version }}/bin/install_solr_service.sh {{ install_path }}/solr-{{ solr_version }}.tgz -p {{ solr_port }} -d /opt/solrdata
-  when: solr_init_script.stat.exists == False
-
-- name: configure solr loggers
-  become: yes
-  copy:
-    src: log4j.properties
-    dest: /opt/solrdata/log4j.properties
-    owner: solr
-    group: solr
-    mode: 0640
-
-- name: put in place Solr limits.d configuration
-  become: yes
-  copy:
-    src: solr_limits.conf
-    dest: /etc/security/limits.conf
-    owner: root
-    group: root
-    mode: 0644
-
-# See https://superuser.com/questions/1200539/cannot-increase-open-file-limit-past-4096-ubuntu
-- name: Increase max open files in user.conf
-  become: yes
-  lineinfile:
-    path: /etc/systemd/user.conf
-    state: present
-    regexp: DefaultLimitNOFILE
-    line: DefaultLimitNOFILE=65535
-
-# See https://superuser.com/questions/1200539/cannot-increase-open-file-limit-past-4096-ubuntu
-- name: Increase max processes in user.conf
-  become: yes
-  lineinfile:
-    path: /etc/systemd/user.conf
-    state: present
-    regexp: DefaultLimitNPROC
-    line: DefaultLimitNPROC=65535
-
-# See https://superuser.com/questions/1200539/cannot-increase-open-file-limit-past-4096-ubuntu
-- name: Increase max open files in system.conf
-  become: yes
-  lineinfile:
-    path: /etc/systemd/system.conf
-    state: present
-    regexp: DefaultLimitNOFILE
-    line: DefaultLimitNOFILE=65535
-
-# See https://superuser.com/questions/1200539/cannot-increase-open-file-limit-past-4096-ubuntu
-- name: Increase max processes in system.conf
-  become: yes
-  lineinfile:
-    path: /etc/systemd/system.conf
-    state: present
-    regexp: DefaultLimitNPROC
-    line: DefaultLimitNPROC=65535
-
-- name: "template solr variable configuration"
-  become: yes
-  template: src=solr.in.sh.j2 dest=/etc/default/solr.in.sh owner=root group=solr
-
-- name: configure systemd solr service
-  become: yes
-  copy:
-    src: solr.service
-    dest: /etc/systemd/system/solr.service
-    mode: 0644
-
-- name: Enable solr system service, reload systemd configs, and restart Solr
-  become: yes
-  systemd:
-    name: solr
-    enabled: yes
-    daemon_reload: yes
-    state: restarted
+  shell: bash {{ install_path }}/solr-{{ solr_version }}/bin/install_solr_service.sh {{ install_path }}/solr-{{ solr_version }}.tgz -f -d /opt/solrdata
+  when: solr_version != running_version

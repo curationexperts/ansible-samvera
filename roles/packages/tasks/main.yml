@@ -64,5 +64,5 @@
     - redis-server
     - xfsprogs
     - libsqlite3-dev
-    - openjdk-8-jdk-headless
+    - openjdk-17-jdk-headless
     - zip

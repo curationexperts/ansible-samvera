@@ -10,7 +10,7 @@
 
 - name: Set hostname
   become: yes
-  hostname: name={{ hostname }}
+  hostname: name={{ [hostname, domain] | join('.') }}
 
 - name: Edit /etc/hosts
   become: yes

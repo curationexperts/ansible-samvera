@@ -29,7 +29,7 @@
 
 - name: create cap user
   become: yes
-  user: name=deploy group=deploy shell=/bin/bash createhome=yes state=present
+  user: name=deploy group=deploy shell=/bin/bash createhome=yes state=present password_lock=true
 
 - name: add keys for capistrano user from keys_to_add array
   become: yes

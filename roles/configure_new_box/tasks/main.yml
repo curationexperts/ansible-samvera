@@ -75,6 +75,12 @@
       - configure
   # block end - configure Fedora
 
+- name: check for existing solr core
+  ansible.builtin.uri:
+    url: http://localhost:8983/solr/admin/cores?action=STATUS&indexInfo=false&core={{ project_name }}
+    body_format: json
+  register: t3_core
+
 - name: create default solr collection
   become: yes
   become_user: solr
@@ -82,6 +88,7 @@
   tags:
     - solr
     - configure
+  when: "'name' not in t3_core['json']['status']['t3']"
 
 - name: create directories needed for capistrano
   become: yes

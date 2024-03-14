@@ -7,88 +7,49 @@
 # Usage:
 #    - { role: apache, passenger_ver: *required* }
 #
+# This script largely follows the instructions available at
+# https://www.phusionpassenger.com/docs/tutorials/deploy_to_production/installations/oss/aws/ruby/apache/
 # NOTE: this role does not configure an application Virtual Host, you must do that in an application setup role
 
-- name: determine system gem path
-  shell: 'gem env gemdir'
-  register: system_gem_path
-
-- name: install passenger gem
+- name: install apache webserver for Ubuntu
   become: yes
-  gem: name=passenger user_install=no state=present version={{ passenger_ver }}
+  package:
+    name: apache2
+    state: present
 
-- name: install apache packages for Ubuntu
+- name: ensure passenger dependencies are installed
   become: yes
   package: name={{ item }} state=present
   with_items:
-    - apache2
-    # if this is omitted, passenger doesn't have the headers it needs
-    - libaprutil1-dev
-    - apache2-dev
+    - dirmngr
+    - gnupg
+    - apt-transport-https
+    - ca-certificates
 
-- name: ensure directory for passenger temp files persists across reboots
+- name: add phusion passenger APT repoistory
   become: yes
-  template: src=passenger_tmpfiles.j2 dest=/usr/lib/tmpfiles.d/passenger.conf owner=root group=root backup=no
+  deb822_repository:
+    name: passenger
+    types: deb
+    uris: https://oss-binaries.phusionpassenger.com/apt/passenger
+    suites: '{{ ansible_distribution_release }}'
+    components: main
+    signed_by: https://oss-binaries.phusionpassenger.com/auto-software-signing-gpg-key.txt
 
-- name: install passenger-install-apache2-module
+- name: update apt cache to include new passenger repository
   become: yes
-  shell: passenger-install-apache2-module --auto creates={{ system_gem_path.stdout }}/gems/passenger-{{ passenger_ver }}/buildout/apache2/mod_passenger.so
+  package: update_cache=yes
 
-- name: install passenger agent
+- name: install apache passenger module
   become: yes
-  shell: passenger-config install-agent creates={{ system_gem_path.stdout }}/gems/passenger-{{ passenger_ver }}/buildout/support-binaries/PassengerAgent
-
-- name: generate passenger.conf file
-  become: yes
-  shell: bash -c "passenger-install-apache2-module --snippet > /etc/apache2/conf-enabled/passenger.conf" creates=/etc/apache2/conf-enabled/passenger.conf
-
-- name: configure passenger.conf to accept encoded slashes
-  become: yes
-  lineinfile:
-    dest: /etc/apache2/conf-enabled/passenger.conf
+  package:
+    name: libapache2-mod-passenger
     state: present
-    line: PassengerAllowEncodedSlashes on
-    insertbefore: </IfModule>
-
-- name: Ensure Passenger Instance Registry Directory exists
-  become: yes
-  file:
-    path: '{{ passenger_inst_reg_dir }}'
-    state: directory
-    owner: deploy
-    group: deploy
-
-- name: Set Passenger Instance Registry Directory in passenger.conf
-  become: yes
-  lineinfile:
-    dest: /etc/apache2/conf-enabled/passenger.conf
-    line: "  PassengerInstanceRegistryDir {{ passenger_inst_reg_dir }}"
-    insertbefore: </IfModule>
-    state: present
-
-- name: Put in place Passenger Instance Registry Directory environment variable
-  become: yes
-  lineinfile:
-    dest: /etc/profile
-    regexp: "^(export PASSENGER_INSTANCE_REGISTRY_DIR=)"
-    state: present
-    line: "export PASSENGER_INSTANCE_REGISTRY_DIR={{ passenger_inst_reg_dir }}"
 
 - name: remove default apache site
   become: yes
   command: a2dissite 000-default
 
-- name: enable rewrite module
+- name: enable apache modules - rewrite, ssl, headers, & unique_id
   become: yes
-  command: a2enmod rewrite
-
-- name: enable ssl module
-  become: yes
-  command: a2enmod ssl
-
-- name: restart apache
-  become: yes
-  service:
-    name: apache2
-    enabled: yes
-    state: restarted
+  command: a2enmod rewrite ssl headers unique_id

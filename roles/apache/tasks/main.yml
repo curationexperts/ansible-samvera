@@ -40,16 +40,17 @@
   become: yes
   package: update_cache=yes
 
-- name: install apache passenger module
+- name: install optional apache modules - passenger & evasive
   become: yes
-  package:
-    name: libapache2-mod-passenger
-    state: present
+  package: name={{ item }} state=present
+  with_items:
+    - libapache2-mod-passenger
+    - libapache2-mod-evasive
 
 - name: remove default apache site
   become: yes
   command: a2dissite 000-default
 
-- name: enable apache modules - rewrite, ssl, headers, & unique_id
+- name: enable apache modules - rewrite, ssl, headers, evasive & unique_id
   become: yes
-  command: a2enmod rewrite ssl headers unique_id
+  command: a2enmod rewrite ssl headers evasive unique_id

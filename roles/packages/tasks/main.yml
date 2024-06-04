@@ -37,6 +37,7 @@
     - build-essential
     - git
     - git-core
+    - ca-certificates
     - curl
     - htop
     - openssl
@@ -62,6 +63,7 @@
     - libcurl4-openssl-dev
     - libxvidcore-dev
     - redis-server
+    - redis-tools
     - xfsprogs
     - libsqlite3-dev
     - openjdk-17-jdk-headless

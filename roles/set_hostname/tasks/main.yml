@@ -8,7 +8,7 @@
 # Usage:
 #    - { role: set_hostname, hostname: 'my_server', domain: 'example.com' }
 
-- name: Set hostname
+- name: Set hostname to "{{ hostname }}"
   become: yes
   hostname: name={{ [hostname, domain] | join('.') }}
 

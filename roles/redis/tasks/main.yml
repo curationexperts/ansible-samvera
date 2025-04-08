@@ -1,0 +1,25 @@
+---
+# ROLE: redis
+# roles/redis/tasks/main.yml
+#
+# Installs the most recent version of redis server and tools
+# Usage:
+#    - { role: redis }
+#
+- name: add redis gpg key to keyring
+  become: yes
+  apt_key:
+    url: https://packages.redis.io/gpg
+    keyring: /usr/share/keyrings/redis-archive-keyring.gpg
+
+- name: add Redis apt repository
+  become: yes
+  apt_repository:
+    repo: "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb {{ ansible_distribution_release }} main"
+    filename: redis
+    state: present
+    update_cache: false
+
+- name: install Redis via apt repository
+  become: yes
+  package: name=redis state=present

@@ -1,0 +1,26 @@
+---
+# ROLE: ruby_via_snap
+# roles/ruby_via_snap/tasks/main.yml
+#
+# Installs the specified ruby version using Snap
+# NOTE: must provide a valid ruby snap channel
+#
+# Usage:
+#    - { role: ruby_via_snap, ruby_version: '3.4/stable'  }
+#
+# Reads https://cache.ruby-lang.org/pub/ruby/index.txt
+# to find download URL and checksum
+
+- name: remove package ruby
+  become: yes
+  package: name=ruby state=absent
+
+- name: install ruby via snap (channel={{ ruby_channel }})
+  snap: 
+    name: ruby
+    channel: "{{ ruby_channel }}"
+    classic: true
+
+- name: update rubygems
+  become: yes
+  command: gem update --system

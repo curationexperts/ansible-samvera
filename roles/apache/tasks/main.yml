@@ -54,3 +54,17 @@
 - name: enable apache modules - rewrite, ssl, headers, evasive & unique_id
   become: yes
   command: a2enmod rewrite ssl headers evasive unique_id
+
+- name: create JSON loggin config file
+  become: true
+  copy:
+    src: json-logs.conf
+    dest: /etc/apache2/conf-available/json-logs.conf
+
+- name: enable JSON logging configuration
+  become: true
+  command: a2enconf json-logs
+
+- name: disable non-JSON logging configuration
+  become: true
+  command: a2disconf other-vhosts-access-log

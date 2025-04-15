@@ -6,16 +6,26 @@
 # NOTE: must provide a valid ruby snap channel
 #
 # Usage:
-#    - { role: ruby_via_snap, ruby_version: '3.4/stable'  }
-#
-# Reads https://cache.ruby-lang.org/pub/ruby/index.txt
-# to find download URL and checksum
+#    - { role: ruby_via_snap, ruby_channel: '3.4/stable'  }
 
 - name: remove package ruby
   become: yes
   package: name=ruby state=absent
 
+- name: remove compiled rubies
+  become: yes
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_items:
+    - /usr/bin/ruby
+    - /usr/local/bin/ruby
+    - /usr/local/lib/ruby
+    - /usr/local/share/ri
+    - /usr/lib/ruby
+
 - name: install ruby via snap (channel={{ ruby_channel }})
+  become: true
   snap: 
     name: ruby
     channel: "{{ ruby_channel }}"

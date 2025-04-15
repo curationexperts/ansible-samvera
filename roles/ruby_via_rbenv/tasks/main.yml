@@ -1,0 +1,63 @@
+---
+# ROLE: ruby_via_rbenv
+# roles/ruby_via_rbenv/tasks/main.yml
+#
+# Installs the specified ruby version using rbenv and ruby-build
+# NOTE: must specify a valid ruby version for your platform
+#
+# Usage:
+#    - { role: ruby_via_rbenv, ruby_version: '3.4/stable'  }
+
+# - name: copy rbenv
+#   become: true
+#   become_user: deploy
+#   shell:
+#     cmd: git clone https://github.com/rbenv/rbenv.git /home/deploy/.rbenv
+#     creates: /home/deploy/.rbenv/libexec/rbenv
+    
+- name: clone rbenv from source
+  become: true
+  become_user: deploy
+  git:
+    repo: https://github.com/rbenv/rbenv.git
+    dest: /home/deploy/.rbenv
+
+- name: clone ruby-build to plugins
+  become: true
+  become_user: deploy
+  git:
+    repo: https://github.com/rbenv/ruby-build.git
+    dest: /home/deploy/.rbenv/plugins/ruby-build
+
+
+# - name: run rbenv init script
+#   become: true
+#   become_user: deploy
+#   command:
+#     cmd: /usr/bin/bash -c "/home/deploy/.rbenv/bin/rbenv.sh init"
+    
+- name: Rbenv is initialized in profile for deploy user
+  become: true
+  become_user: deploy
+  blockinfile:
+    dest: '~deploy/.profile'
+    block: |
+      export PATH="/home/deploy/.rbenv//bin:$PATH"
+      eval "$(rbenv init -)"
+    marker: "# {mark} ANSIBLE MANAGED RBENV INIT"
+
+# - name: install ruby {{ ruby_version | mandatory(msg='Please supply a ruby_version to be installed') }}
+#   become: true
+#   become_user: deploy
+#   become_flags: -l
+#   shell:
+#     cmd: rbenv install {{ ruby_version }}
+    
+- name: install ruby {{ ruby_version }} for deploy user (be patient... could be long)
+  become: true
+  become_user: deploy
+  async: 900
+  poll: 15
+  shell: /bin/bash -lc "TMPDIR=~/tmp rbenv install {{ ruby_version }}"
+
+

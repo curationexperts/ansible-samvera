@@ -51,9 +51,9 @@
   become: yes
   command: a2dissite 000-default
 
-- name: enable apache modules - rewrite, ssl, headers, evasive & unique_id
+- name: enable apache modules - rewrite, ssl, headers, evasive, unique_id, & passenger
   become: yes
-  command: a2enmod rewrite ssl headers evasive unique_id
+  command: a2enmod rewrite ssl headers evasive unique_id passenger
 
 - name: create JSON loggin config file
   become: true

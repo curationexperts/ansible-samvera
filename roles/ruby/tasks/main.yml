@@ -16,7 +16,7 @@
     when: defined(ruby_ver) & undefined(ruby_version)
 
 - name: check if ruby {{ ruby_version }} is installed
-  shell: ruby --version | grep {{ ruby_version }}
+  shell: ruby -help | grep {{ ruby_version }}
   ignore_errors: true
   register: ruby_preinstalled
 
@@ -58,19 +58,30 @@
     unarchive: src={{ install_path }}/ruby-{{ ruby_version }}.tar.gz dest={{ install_path }}/ creates={{ install_path }}/ruby-{{ ruby_version }}/compile.c copy=no
 
   - name: configure ruby
-    shell: cd {{ install_path }}/ruby-{{ ruby_version }} && ./configure --enable-shared --disable-install-doc --disable-rubygems creates={{ install_path }}/ruby-{{ ruby_version }}/Makefile
+    shell: cd {{ install_path }}/ruby-{{ ruby_version }} && ./configure --enable-shared --disable-install-doc creates={{ install_path }}/ruby-{{ ruby_version }}/Makefile
 
   - name: make ruby
     async: 900 # allow task to run up to 15 minutes
     poll: 15
     shell: cd {{ install_path }}/ruby-{{ ruby_version }} && make
 
-  - name: install ruby
+  # - name: install ruby
+  #   async: 900 # allow task to run up to 15 minutes
+  #   poll: 15
+  #   become: yes
+  #   shell: cd {{ install_path }}/ruby-{{ ruby_version }} && make install
+
+  - name: install ruby (with expect)
     async: 900 # allow task to run up to 15 minutes
     poll: 15
     become: yes
-    shell: cd {{ install_path }}/ruby-{{ ruby_version }} && make install
-  #when applied to each of the tasks in the block above
+    expect:
+      chdir: "{{ install_path }}/ruby-{{ ruby_version }}"
+      command: make install
+      responses:
+        "Overwrite the executable\\?": "y"
+
+  #when is applied to each of the tasks in the block above
   when: ruby_preinstalled.failed
 
 - name: update rubygems

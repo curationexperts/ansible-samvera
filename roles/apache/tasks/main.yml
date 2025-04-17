@@ -7,8 +7,6 @@
 # Usage:
 #    - { role: apache, passenger_ver: *required* }
 #
-# This script largely follows the instructions available at
-# https://www.phusionpassenger.com/docs/tutorials/deploy_to_production/installations/oss/aws/ruby/apache/
 # NOTE: this role does not configure an application Virtual Host, you must do that in an application setup role
 
 - name: install apache webserver for Ubuntu
@@ -17,43 +15,19 @@
     name: apache2
     state: present
 
-- name: ensure passenger dependencies are installed
+- name: install optional apache modules - evasive
   become: yes
   package: name={{ item }} state=present
   with_items:
-    - dirmngr
-    - gnupg
-    - apt-transport-https
-    - ca-certificates
-
-- name: add phusion passenger APT repoistory
-  become: yes
-  deb822_repository:
-    name: passenger
-    types: deb
-    uris: https://oss-binaries.phusionpassenger.com/apt/passenger
-    suites: '{{ ansible_distribution_release }}'
-    components: main
-    signed_by: https://oss-binaries.phusionpassenger.com/auto-software-signing-gpg-key.txt
-
-- name: update apt cache to include new passenger repository
-  become: yes
-  package: update_cache=yes
-
-- name: install optional apache modules - passenger & evasive
-  become: yes
-  package: name={{ item }} state=present
-  with_items:
-    - libapache2-mod-passenger
     - libapache2-mod-evasive
 
 - name: remove default apache site
   become: yes
   command: a2dissite 000-default
 
-- name: enable apache modules - rewrite, ssl, headers, evasive, unique_id, & passenger
+- name: enable apache modules - rewrite, ssl, headers, evasive, & unique_id
   become: yes
-  command: a2enmod rewrite ssl headers evasive unique_id passenger
+  command: a2enmod rewrite ssl headers evasive unique_id
 
 - name: create JSON loggin config file
   become: true
@@ -68,3 +42,48 @@
 - name: disable non-JSON logging configuration
   become: true
   command: a2disconf other-vhosts-access-log
+
+# This script largely follows the instructions available at
+# https://www.phusionpassenger.com/docs/tutorials/deploy_to_production/installations/oss/aws/ruby/apache/
+#.   for "Other / OS independent" with "RubyGems (Without RVM)"
+- name: determine system gem path
+  shell: 'gem env gemdir'
+  register: system_gem_path
+
+- name: install passenger gem
+  become: yes
+  gem: name=passenger user_install=no state=present force=true version={{ passenger_ver }}
+
+- name: install passenger-install-apache2-module
+  async: 900 # allow task to run up to 15 minutes
+  poll: 15
+  become: yes
+  shell: passenger-install-apache2-module --auto creates={{ system_gem_path.stdout }}/gems/passenger-{{ passenger_ver }}/buildout/apache2/mod_passenger.so
+
+- name: generate passenger.conf file
+  become: yes
+  shell: bash -c "passenger-install-apache2-module --snippet > /etc/apache2/conf-enabled/passenger.conf"
+
+# fix 'too long unix socket path' error in passenger-status
+# see https://github.com/phusion/passenger/issues/2397#issuecomment-1262352781
+- name: Set Passenger Instance Registry Directory in passenger.conf
+  become: yes
+  lineinfile:
+    dest: /etc/apache2/conf-enabled/passenger.conf
+    line: "  PassengerInstanceRegistryDir /var/run/passenger-instreg"
+    insertbefore: </IfModule>
+    state: present
+
+- name: ensure passenger tempfile directory is recreated on reboot
+  become: yes
+  copy:
+    dest: /usr/lib/tmpfiles.d/passenger.conf
+    content: |
+      # Directory for Passenger sockets, lockfiles and stats tempfiles
+      d /var/run/passenger-instreg 2775 deploy deploy - -
+
+- name: initialize passenger tempfile directory
+  become: yes
+  command:
+    cmd: systemd-tmpfiles --create /usr/lib/tmpfiles.d/passenger.conf
+    creates: /var/run/passenger-instreg

@@ -18,8 +18,8 @@
     repo: "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb {{ ansible_distribution_release }} main"
     filename: redis
     state: present
-    update_cache: false
+    update_cache: true
 
 - name: install Redis via apt repository
   become: yes
-  package: name=redis state=present
+  package: name=redis state=latest

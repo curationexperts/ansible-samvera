@@ -3,32 +3,28 @@
   become: yes
   package: name=ghostscript state=absent
 
-- name: download ghostscript source
-  get_url:
-    url: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs919/ghostscript-{{ gs_ver }}.tar.gz
-    dest: "imagemagick_sources/ghostscript-{{ gs_ver }}.tar.gz"
-    force: no
-
-- name: unzip ghostscript source
-  shell: tar zxvf ghostscript-{{ gs_ver }}.tar.gz creates=ghostscript-{{ gs_ver }} warn=no
-  args:
-    chdir: imagemagick_sources
+- name: download and unzip ghostscript source
+  ansible.builtin.unarchive:
+    src: https://github.com/ArtifexSoftware/ghostpdl-downloads/releases/download/gs{{ gs_ver | regex_replace("\.","")}}/ghostscript-{{ gs_ver }}.tar.xz
+    dest: imagemagick_sources
+    creates: imagemagick_sources/ghostscript-{{ gs_ver }}
+    remote_src: yes
 
 - name: configure ghostscript
-  shell: ./configure
-  args:
+  shell:
+    cmd: ./configure
     chdir: imagemagick_sources/ghostscript-{{ gs_ver }}
     creates: ./config.status
 
 - name: make ghostscript
-  shell: make
-  args:
+  shell:
+    cmd: make
     chdir: imagemagick_sources/ghostscript-{{ gs_ver }}
     creates: ./bin/gs
 
 - name: install ghostscript
   become: yes
-  shell: make install
-  args:
+  shell:
+    cmd: make install
     chdir: imagemagick_sources/ghostscript-{{ gs_ver }}
     creates: /usr/local/bin/gs

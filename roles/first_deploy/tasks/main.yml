@@ -8,10 +8,17 @@
 #
 # Does a minimal install of a codebase from development mode to bootstrap a capistrano deployment
 # The codebase being deployed must be capified and have a config/deploy/localhost.rb stage file
-- name: remove previous known_hosts file
-  file:
-    path: /home/{{ ansible_ssh_user }}/.ssh/known_hosts
-    state: absent
+- name: create apache vhosts file
+  become: yes
+  template: src=apache_vhost.j2 dest=/etc/apache2/sites-available/{{ project_name }}.conf owner=root group=root backup=no
+
+- name: enable project-specific site file
+  become: yes
+  command: a2ensite "{{project_name}}"
+
+- name: restart apache to load new virtual host
+  become: yes
+  service: name=apache2 state=restarted
 
 - name: "create shared project directory"
   become: yes
@@ -37,6 +44,21 @@
       - database.yml
       - secrets.yml
 
+- name: create master.key file
+  become: yes
+  copy:
+    dest: /opt/{{ project_name }}/shared/config/master.key
+    owner: deploy
+    group: deploy
+    content: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          35643537386433353861643263393036353464376461343265616135613237396239356165306134
+          6565343736353230653235316131346339346661613863300a306439316131373466653932333238
+          65323262653965336466356531373862616133623766623333353738346535666531396464653364
+          6433333234373339390a303861376231623565373262643664396464303463333738363232376435
+          64373132346438383430383735383562383666633362323636623765313131386561346464633832
+          3534666235306634393337616531353732383332346433316261
+
 - name: default repo name
   set_fact:
     default_repo_name: "https://github.com/curationexperts/{{ project_name }}.git"
@@ -57,9 +79,34 @@
   args:
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
+- name: find bundler version from Gemfile.lock
+  shell:
+    cmd: grep -A 1 "BUNDLED WITH" Gemfile.lock
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
+  register: bundler_version_phrase
+
+- name: set bundler version from Gemfile.lock
+  set_fact:
+    bundler_version: "{{ bundler_version_phrase.stdout | regex_replace('BUNDLED WITH\n   (.*)', '\\1') }}"
+
+- name: check if bundler {{ bundler_version }} is installed
+  shell: bundler --version | grep {{ bundler_version }}
+  ignore_errors: true
+  register: bundler_preinstalled
+
+- name: install bundler if it-s not already there
+  become: yes
+  shell: gem install bundler -v "{{ bundler_version }}"
+  when: bundler_preinstalled.failed
+
+- name: set bundler to deployment mode
+  shell:
+    cmd: bundle config set deployment tru
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
+
 - name: install bundle
-  shell: bundle install --quiet
-  args:
+  shell:
+    cmd: bundle install --quiet
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
 - name: install ed25519 support
@@ -85,30 +132,6 @@
     version: 3.17.0
     state: present
     user_install: false
-
-- name: find bundler version from Gemfile.lock
-  shell: grep -A 1 "BUNDLED WITH" Gemfile.lock
-  args:
-    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
-  register: bundler_version_phrase
-
-- name: set bundler version from Gemfile.lock
-  set_fact:
-    bundler_version: "{{ bundler_version_phrase.stdout | regex_replace('BUNDLED WITH\n   (.*)', '\\1') }}"
-
-- name: check if bundler {{ bundler_version }} is installed
-  shell: bundler --version | grep {{ bundler_version }}
-  ignore_errors: true
-  register: bundler_preinstalled
-
-- name: install bundler if it-s not already there
-  block:
-    - name: install project bundler
-      become: yes
-      shell: gem install bundler -v "{{ bundler_version }}"
-  when: bundler_preinstalled.failed
-
-
 
   # Set up a key so the ansible user can connect as the capistrano deploy user
 - name: create deployment keypair for connection user
@@ -143,28 +166,26 @@
     mode: '0775'
     state: touch
 
-- name: create apache vhosts file
-  become: yes
-  template: src=apache_vhost.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}.conf owner=root group=root backup=no
+- name: deploy to production directories with capistrano
+  shell:
+    cmd: BRANCH={{ branch | default('main') }} bundle exec cap localhost deploy
+    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
-- name: create apache vhostsssl file
-  become: yes
-  template: src=apache_vhost-le.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}-le-ssl.conf owner=root group=root backup=no
-
-- name: install certbot
-  become: yes
-  package: name={{ item }} state=present
-  with_items:
-    - certbot
-    - python3-certbot-apache
-
-- name: set up letsencrypt
-  become: yes
-  command: certbot --noninteractive -m sysadmin@curationexperts.com --redirect --agree-tos --apache run -d {{ hostname }}.{{ domain  }}
-
-- name: restart apache to load new virtual host
-  become: yes
-  service: name=apache2 state=restarted
+# - name: create apache vhostsssl file
+#   become: yes
+#   template: src=apache_vhost-le.j2 dest=/etc/apache2/sites-enabled/{{ project_name }}-le-ssl.conf owner=root group=root backup=no
+#
+# - name: install certbot
+#   become: yes
+#   package: name={{ item }} state=present
+#   with_items:
+#     - certbot
+#     - python3-certbot-apache
+#
+# - name: set up letsencrypt
+#   become: yes
+#   command: certbot --noninteractive -m sysadmin@curationexperts.com --redirect --agree-tos --apache run -d {{ hostname }}.{{ domain  }}
+#
 
 - name: create solr config dir
   become: yes
@@ -185,11 +206,6 @@
 - name: restart solr
   become: true
   service: name=solr state=restarted
-
-- name: deploy to production directories with capistrano
-  shell: BRANCH={{ branch | default('main') }} cap localhost deploy
-  args:
-    chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
 - name: create core
   become: yes
@@ -212,13 +228,3 @@
   shell: RAILS_ENV=production bundle exec rails hyrax:workflow:load
   args:
     chdir: /opt/{{ project_name }}/current
-
-
-
-- name: restart solr
-  become: true
-  service: name=solr state=restarted
-
-- name: restart apache to load newly configured passenger application
-  become: yes
-  service: name=apache2 state=restarted

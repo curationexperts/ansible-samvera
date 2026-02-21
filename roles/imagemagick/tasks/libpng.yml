@@ -1,34 +1,23 @@
 ---
-- name: download libpng source
-  get_url:
-    url: https://sourceforge.net/projects/libpng/files/libpng16/{{ libpng_ver }}/libpng-{{ libpng_ver }}.tar.gz
-    dest: "imagemagick_sources/libpng-{{ libpng_ver }}.tar.gz"
-    force: no
-  ignore_errors: yes  # if this download fails, drop through to the alternate download path below
-
-- name: check alternate libpng download source .../older-releases if needed
-  get_url:
-    url: https://downloads.sourceforge.net/project/libpng/libpng16/{{ libpng_ver }}/libpng-{{ libpng_ver }}.tar.gz
-    dest: "imagemagick_sources/libpng-{{ libpng_ver }}.tar.gz"
-    force: no
-
-- name: unzip libpng source
-  shell: tar zxvf libpng-{{ libpng_ver }}.tar.gz creates=libpng-{{ libpng_ver }} warn=no
-  args:
-    chdir: imagemagick_sources
+- name: download and unzip libpng source
+  ansible.builtin.unarchive:
+    src: https://download.sourceforge.net/libpng/libpng-{{ libpng_ver }}.tar.xz
+    dest: imagemagick_sources
+    creates: imagemagick_sources/libpng-{{ libpng_ver }}
+    remote_src: yes
 
 - name: configure libpng
-  shell: ./configure
-  args:
+  shell:
+    cmd: ./configure
     chdir: imagemagick_sources/libpng-{{ libpng_ver }}
 
 - name: make libpng
-  shell: make
-  args:
+  shell:
+    cmd: make
     chdir: imagemagick_sources/libpng-{{ libpng_ver }}
 
 - name: install libpng
   become: yes
-  shell: make install
-  args:
+  shell:
+    cmd: make install
     chdir: imagemagick_sources/libpng-{{ libpng_ver }}

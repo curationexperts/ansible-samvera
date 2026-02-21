@@ -9,26 +9,17 @@
   # the package module still depends on the underlying yum & apt modules
   # where the commands differ, we can't use a single task across distros
   package: update_cache=yes
-  when:
-      (ansible_distribution == "Ubuntu") or
-      (ansible_distribution == "Debian")
 
 - name: install aptitude
   # on Debian Jessie and certain minimal Ubuntu builds aptitude is not installed
   # without aptitude installed `apt-get upgrade` fails
   become: yes
   package: name=aptitude state=present
-  when:
-      (ansible_distribution == "Ubuntu") or
-      (ansible_distribution == "Debian")
 
 - name: upgrade apt packages
   become: yes
   # commands for upgrading differ - this is for apt
   package: upgrade=full
-  when:
-      (ansible_distribution == "Ubuntu") or
-      (ansible_distribution == "Debian")
 
 - name: install dev tools and libraries
   become: yes
@@ -51,7 +42,7 @@
     - libgmp3-dev
     - libreoffice
     - libmagickwand-dev
-    - libopenjp3d7
+    - libopenjp2-7
     - imagemagick
     - autoconf
     - libc6-dev

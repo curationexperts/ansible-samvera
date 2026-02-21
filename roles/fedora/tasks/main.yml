@@ -20,6 +20,39 @@
   become: yes
   package: name=tomcat9 state=present
 
+# # 2026-02-20 semi-manual install of Tomca9 (only tomcat10 avaialble in 24.04 packages)
+# - name: install OpenJDK 11
+#   become: yes
+#   package: name=openjdk-11-jdk state=present
+#
+# - name: add tomcat group
+#   become: yes
+#   ansible.builtin.group:
+#     name: tomcat
+#     state: present
+#
+# - name: add tomcat user
+#   become: yes
+#   ansible.builtin.user:
+#     name: tomcat
+#     comment: Apache Tomcat
+#     shell: /usr/sbin/nologin
+#     create_home: false
+#     group: tomcat
+#
+# - name: download tomcat9
+#   get_url:
+#     url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.115/src/apache-tomcat-9.0.115-src.tar.gz
+#     dest: '{{ install_path }}/apache-tomcat-9.0.115-src.tar.gz'
+#     timeout: 100
+#     owner: '{{ ansible_ssh_user }}'
+#     checksum: sha512:https://downloads.apache.org/tomcat/tomcat-9/v9.0.115/src/apache-tomcat-9.0.115-src.tar.gz.sha512
+#
+# - name: stop install
+#   fail: msg="Downloaded Tomcat9"
+#
+# # 2026-02-20 end alternate Tomcat9 install
+
 - name: download fedora
   get_url: url=https://repo1.maven.org/maven2/org/fcrepo/fcrepo-webapp/{{ fedora_version }}/fcrepo-webapp-{{ fedora_version }}.war owner={{ ansible_ssh_user }} dest={{ install_path }}/fcrepo-webapp-{{ fedora_version }}.war timeout=100
 

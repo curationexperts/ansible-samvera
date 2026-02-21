@@ -1,27 +1,23 @@
 ---
-- name: download libtiff source
-  get_url:
-    url: https://download.osgeo.org/libtiff/tiff-{{ libtiff_ver }}.tar.gz
-    dest: "imagemagick_sources/tiff-{{ libtiff_ver }}.tar.gz"
-    force: no
-
-- name: unzip libtiff source
-  shell: tar zxvf tiff-{{ libtiff_ver }}.tar.gz creates=tiff-{{ libtiff_ver }} warn=no
-  args:
-    chdir: imagemagick_sources
+- name: fetch and unzip libtiff source
+  ansible.builtin.unarchive:
+    src: https://download.osgeo.org/libtiff/tiff-{{ libtiff_ver }}.tar.gz
+    dest: imagemagick_sources
+    creates: imagemagick_sources/tiff-{{ libtiff_ver }}
+    remote_src: yes
 
 - name: configure libtiff
-  shell: ./configure
-  args:
+  shell:
+    cmd: ./configure
     chdir: imagemagick_sources/tiff-{{ libtiff_ver }}
 
 - name: make libtiff
-  shell: make
-  args:
+  shell:
+    cmd: make
     chdir: imagemagick_sources/tiff-{{ libtiff_ver }}
 
 - name: install libtiff
   become: yes
-  shell: make install
-  args:
+  shell:
+    cmd: make install
     chdir: imagemagick_sources/tiff-{{ libtiff_ver }}

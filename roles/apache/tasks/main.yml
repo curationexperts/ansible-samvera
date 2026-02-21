@@ -9,11 +9,16 @@
 #
 # NOTE: this role does not configure an application Virtual Host, you must do that in an application setup role
 
-- name: install apache webserver for Ubuntu
+- name: install apache webserver and support packages for Ubuntu
   become: yes
-  package:
-    name: apache2
+  package: 
+    name: "{{ item }}"
     state: present
+  with_items:
+    - apache2
+    - apache2-dev
+    - libapr1-dev
+    - libaprutil1-dev
 
 - name: install optional apache modules - evasive
   become: yes
@@ -27,7 +32,7 @@
 
 - name: enable apache modules - rewrite, ssl, headers, evasive, & unique_id
   become: yes
-  command: a2enmod rewrite ssl headers evasive unique_id
+  command: a2enmod rewrite ssl headers unique_id
 
 - name: create JSON loggin config file
   become: true
@@ -52,7 +57,12 @@
 
 - name: install passenger gem
   become: yes
-  gem: name=passenger user_install=no state=present force=true version={{ passenger_ver }}
+  community.general.gem: 
+    name: passenger 
+    user_install: no
+    state: present
+    force: true
+    version: '{{ passenger_ver }}'
 
 - name: install passenger-install-apache2-module
   async: 900 # allow task to run up to 15 minutes
@@ -81,6 +91,21 @@
     content: |
       # Directory for Passenger sockets, lockfiles and stats tempfiles
       d /var/run/passenger-instreg 2775 deploy deploy - -
+
+- name: ensure deploy group exists
+  become: yes
+  ansible.builtin.group:
+    name: deploy
+    state: present
+
+- name: ensure deploy user exists
+  become: yes
+  ansible.builtin.user:
+    name: deploy
+    comment: Primary Rails user
+    shell: /bin/bash
+    create_home: true
+    group: deploy
 
 - name: initialize passenger tempfile directory
   become: yes

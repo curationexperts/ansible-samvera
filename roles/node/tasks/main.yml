@@ -19,7 +19,7 @@
 
 - name: Run the nodesource setup script
   become: true
-  command: sh /home/{{ ansible_ssh_user }}/nodesource_setup.sh
+  command: /home/{{ ansible_ssh_user }}/nodesource_setup.sh
 
 - name: remove exisiting package
   become: true

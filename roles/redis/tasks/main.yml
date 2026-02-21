@@ -15,7 +15,7 @@
 - name: add Redis apt repository
   become: yes
   apt_repository:
-    repo: "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb {{ ansible_distribution_release }} main"
+    repo: "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb {{ ansible_facts['distribution_release'] }} main"
     filename: redis
     state: present
     update_cache: true

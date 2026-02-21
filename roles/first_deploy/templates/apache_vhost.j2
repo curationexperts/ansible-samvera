@@ -1,5 +1,51 @@
-ServerName {{ hostname }}.{{ domain }}
+PassengerMaxPoolSize 6
+# PassengerFriendlyErrorPages on
+PassengerDisableAnonymousTelemetry on
+
+# Global config to address slow connection attacks
+<IfModule mod_reqtimeout.c>
+  RequestReadTimeout handshake=5 header=5,MinRate=62500 body=20-900,MinRate=62500
+</IfModule>
+
+<IfModule mod_headers.c>
+  <IfModule mod_unique_id.c>
+    RequestHeader set X-Request-Id %{UNIQUE_ID}e
+  </IfModule>
+</IfModule>
+
 <VirtualHost *:80>
-  RewriteCond %{SERVER_NAME} ={{ hostname }}.{{ domain }}
-  RewriteRule ^ https://%{SERVER_NAME}%{REQUEST_URI} [END,NE,R=permanent]
+  PassengerMinInstances 6
+  PassengerAppEnv production
+  # !!! Be sure to point DocumentRoot to 'public'!
+  DocumentRoot /opt/cypripedium/current/public
+  # allows forward slashes for IIIF
+  PassengerAllowEncodedSlashes on
+  AllowEncodedSlashes NoDecode
+
+  # Settings compatible with https://github.com/capistrano/maintenance
+  <IfModule mod_rewrite.c> 
+    RewriteEngine On
+
+    # Block requests without a UserAgent set
+    RewriteCond %{HTTP_USER_AGENT} ^$
+    RewriteRule .* - [F]
+
+    # Block facet requests without a referer
+    RewriteCond %{HTTP_REFERER} ^$
+    RewriteCond %{QUERY_STRING} .f.5B
+    RewriteRule .* - [F]
+
+    ErrorDocument 503 /system/maintenance.html
+    # Return 503 error if the maintenance page exists.
+    RewriteCond %{DOCUMENT_ROOT}/system/maintenance.html -f
+    RewriteCond %{SCRIPT_FILENAME} !maintenance.html
+    RewriteRule ^.*$ - [L,R=503]
+  </IfModule>
+
+  <Directory /opt/cypripedium/current/public>
+        # MultiViews must be turned off.
+        Options -MultiViews
+        # Uncomment this if you're on Apache >= 2.4:
+        Require all granted
+  </Directory> 
 </VirtualHost>

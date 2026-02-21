@@ -52,19 +52,16 @@
     path: '{{ install_path }}'
     state: directory
 
-- name: download ffmpeg source
-  get_url:
-    url: https://ffmpeg.org/releases/ffmpeg-{{ ffmpeg_version }}.tar.bz2
-    dest: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}.tar.bz2'
-    force: no
-
-- name: unzip ffmpeg source
-  shell: tar -vxjf ffmpeg-{{ ffmpeg_version }}.tar.bz2 creates=ffmpeg-{{ ffmpeg_version }}/RELEASE warn=no
-  args:
-    chdir: '{{ install_path }}'
+- name: fetch and unzip ffmpeg source
+  ansible.builtin.unarchive:
+    src: https://ffmpeg.org/releases/ffmpeg-{{ ffmpeg_version }}.tar.bz2
+    dest: '{{ install_path }}'
+    creates: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}/RELEASE'
+    remote_src: yes
 
 - name: configure ffmpeg
-  shell: ./configure
+  shell:
+    cmd: ./configure
               --extra-libs=-lpthread
               --enable-gpl
               --enable-libass
@@ -78,16 +75,15 @@
               --enable-libx264
               --enable-libx265
               --enable-nonfree
-  args:
     chdir: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}'
 
 - name: make ffmpeg
-  shell: make
-  args:
+  shell:
+    cmd: make
     chdir: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}'
 
 - name: install ffmpeg
   become: yes
-  shell: make install
-  args:
+  shell:
+    cmd: make install
     chdir: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}'

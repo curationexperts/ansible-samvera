@@ -1,0 +1,126 @@
+---
+# ROLE: packages
+# roles/tomcat9/tasks/main.yml
+#
+# installs tomcat9 for Ubuntu LTS 24.04
+
+- name: install java (OpenJDK 11)
+  become: yes
+  package: name=openjdk-11-jdk state=present
+
+- name: set Java 11 as default
+  become: yes
+  command: update-java-alternatives --set java-1.11.0-openjdk-arm64
+
+- name: check java version
+  command: java --version
+  register: java_version
+
+# - name: Display the full registered variable
+#   ansible.builtin.debug:
+#     var: java_version
+#
+# - fail: msg='Expected Java version not detected'
+#   when: "'openjdk 11' not in java_version.stdout"
+#
+# - name: ensure tomcat group exists
+#   become: yes
+#   ansible.builtin.group:
+#     name: tomcat
+#     state: present
+#
+# - name: ensure tomcat user exists
+#   become: yes
+#   ansible.builtin.user:
+#     name: tomcat
+#     comment: Apache Tomcat
+#     group: tomcat
+#     shell: /usr/sbin/nologin
+#     create_home: false
+#     system: true
+
+- name: setup install directory
+  set_fact:
+    install_path: /home/{{ ansible_ssh_user }}/install
+
+- name: ensure install directory exists
+  file:
+    path: '{{ install_path }}'
+    state: directory
+    
+- name: install libtomcat9-java
+  become: yes
+  ansible.builtin.apt:
+    deb: http://launchpadlibrarian.net/786086833/libtomcat9-java_9.0.58-1ubuntu0.2_all.deb
+
+- name: install tomcat9-common
+  become: yes
+  ansible.builtin.apt:
+    deb: http://launchpadlibrarian.net/786086835/tomcat9-common_9.0.58-1ubuntu0.2_all.deb
+
+- name: install tomcat9
+  become: yes
+  ansible.builtin.apt:
+    deb: http://launchpadlibrarian.net/786086840/tomcat9_9.0.58-1ubuntu0.2_all.deb
+
+- name: install tomcat9-admin
+  become: yes
+  ansible.builtin.apt:
+    deb: http://launchpadlibrarian.net/786086834/tomcat9-admin_9.0.58-1ubuntu0.2_all.deb
+#
+# - name: download tomcat source
+#   get_url:
+#     url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.115/bin/apache-tomcat-9.0.115.tar.gz
+#     dest: '{{ install_path }}/apache-tomcat-9.0.115.tar.gz'
+#     checksum: sha512:https://downloads.apache.org/tomcat/tomcat-9/v9.0.115/bin/apache-tomcat-9.0.115.tar.gz.sha512
+#     mode: '0755'
+#
+# - name: unzip tomcat source
+#   ansible.builtin.unarchive:
+#     src: '{{ install_path }}/apache-tomcat-9.0.115.tar.gz'
+#     dest: '{{ install_path }}'
+#     creates: '{{ install_path }}/apache-tomcat-9.0.115'
+#     remote_src: yes
+
+- name: configure tomcat9 admin gui
+  become: yes
+  lineinfile:
+    dest: /var/lib/tomcat9/conf/tomcat-users.xml
+    state: present
+    line: <role rolename="manager-gui"/><user username="rdb-manager" password="{{ tomcat9_web_gui_password }}" roles="manager-gui"/>
+    insertbefore: </tomcat-users>
+    
+- name: increase tomcat9 memory allocation
+  become: yes
+  lineinfile:
+    dest: /etc/default/tomcat9
+    state: present
+    line: JAVA_OPTS="-Djava.awt.headless=true -Xmx1500m -XX:+UseConcMarkSweepGC"
+    regexp: -Xmx
+  
+- name: set java version for tomcat
+  become: yes
+  lineinfile:
+    dest: /etc/default/tomcat9
+    state: present
+    line: JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
+    regexp: JAVA_HOME
+  
+- name: restart tomcat9
+  become: yes
+  service:
+    name: tomcat9
+    enabled: yes
+    state: restarted
+    
+- name: check tomcat web gui
+  uri:
+    url: http://localhost:8080/manager/html
+    user: rdb-manager
+    password: "{{ tomcat9_web_gui_password }}"
+    force_basic_auth: yes
+    return_content: yes
+  register: webpage
+
+- fail: msg='tomcat9 is not running as expected'
+  when: "'Tomcat Web Application Manager' not in webpage.content"

@@ -75,6 +75,7 @@
               --enable-libx264
               --enable-libx265
               --enable-nonfree
+              --disable-doc
     chdir: '{{ install_path }}/ffmpeg-{{ ffmpeg_version }}'
 
 - name: make ffmpeg

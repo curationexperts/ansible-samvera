@@ -1,10 +1,12 @@
-- name: get the gpg keys for yarn
-  become: true
-  shell: curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
-
-- name: add yarn repos to apt
-  become: true
-  shell: echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+- name: add Yarn apt repository
+  become: yes
+  deb822_repository:
+    name: yarn
+    types: deb
+    uris: https://dl.yarnpkg.com/debian/
+    suites: stable
+    components: main
+    signed_by: https://dl.yarnpkg.com/debian/pubkey.gpg
 
 - name: update and install yarn
   become: true

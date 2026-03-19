@@ -6,20 +6,35 @@
 # Usage:
 #    - { role: redis }
 #
-- name: add redis gpg key to keyring
-  become: yes
-  apt_key:
-    url: https://packages.redis.io/gpg
-    keyring: /usr/share/keyrings/redis-archive-keyring.gpg
+# - name: add redis gpg key to keyring
+#   become: yes
+#   apt_key:
+#     url: https://packages.redis.io/gpg
+#     keyring: /usr/share/keyrings/redis-archive-keyring.gpg
+#
+- name: ensure facts are gathered
+  ansible.builtin.setup:
 
+# - name: add Redis apt repository
+#   become: yes
+#   apt_repository:
+#     repo: "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb {{ ansible_facts['distribution_release'] }} main"
+#     filename: redis
+#     state: present
+#     update_cache: true
+#
 - name: add Redis apt repository
   become: yes
-  apt_repository:
-    repo: "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb {{ ansible_facts['distribution_release'] }} main"
-    filename: redis
-    state: present
-    update_cache: true
+  deb822_repository:
+    name: redis
+    types: deb
+    uris: https://packages.redis.io/deb
+    suites: '{{ ansible_facts["distribution_release"] }}'
+    components: main
+    signed_by: https://packages.redis.io/gpg
 
 - name: install Redis via apt repository
   become: yes
-  package: name=redis state=latest
+  ansible.builtin.apt: 
+    name: redis
+    update_cache: yes

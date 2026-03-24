@@ -51,7 +51,7 @@
     owner: deploy
     group: deploy
     # set the rails_master_key in the main project playbook, or on the command line
-    content: {{ rails_master_key }}
+    content: '{{ rails_master_key }}'
 
 - name: default repo name
   set_fact:
@@ -83,15 +83,11 @@
   set_fact:
     bundler_version: "{{ bundler_version_phrase.stdout | regex_replace('BUNDLED WITH\n   (.*)', '\\1') }}"
 
-- name: check if bundler {{ bundler_version }} is installed
-  shell: bundler --version | grep {{ bundler_version }}
-  ignore_errors: true
-  register: bundler_preinstalled
-
-- name: install bundler if it-s not already there
-  become: yes
-  shell: gem install bundler -v "{{ bundler_version }}"
-  when: bundler_preinstalled.failed
+- name: ensure bundler {{ bundler_wersion }} is installed
+  community.general.gem:
+    name: bundler
+    version: '{{ bundler_version }}'
+    state: present
 
 - name: set bundler to deployment mode
   shell:
@@ -103,29 +99,29 @@
     cmd: bundle install --quiet
     chdir: /home/{{ ansible_ssh_user }}/{{ project_name }}
 
-- name: install ed25519 support
-  become: yes
-  gem:
-    name: ed25519
-    version: 1.2.4
-    user_install: false
-    state: present
-
-- name: install bcrypt_pbkdf support
-  become: yes
-  gem:
-    name: bcrypt_pbkdf
-    version: 1.1.0
-    state: present
-    user_install: false
-
-- name: install capistrano
-  become: yes
-  gem:
-    name: capistrano
-    version: 3.17.0
-    state: present
-    user_install: false
+# - name: install ed25519 support
+#   become: yes
+#   gem:
+#     name: ed25519
+#     version: 1.2.4
+#     user_install: false
+#     state: present
+#
+# - name: install bcrypt_pbkdf support
+#   become: yes
+#   gem:
+#     name: bcrypt_pbkdf
+#     version: 1.1.0
+#     state: present
+#     user_install: false
+#
+# - name: install capistrano
+#   become: yes
+#   gem:
+#     name: capistrano
+#     version: 3.17.0
+#     state: present
+#     user_install: false
 
   # Set up a key so the ansible user can connect as the capistrano deploy user
 - name: create deployment keypair for connection user
@@ -208,6 +204,8 @@
   ignore_errors: yes
   args:
     chdir: /opt/solr 
+  vars:
+    ansible_remote_tmp: /tmp/.ansible/tmp
 
 - name: create default admin sets
   become: yes
@@ -215,6 +213,8 @@
   shell: RAILS_ENV=production bundle exec rails hyrax:default_admin_set:create
   args:
     chdir: /opt/{{ project_name }}/current
+  vars:
+    ansible_remote_tmp: /tmp/.ansible/tmp
 
 - name: create workflows
   become: yes
@@ -222,3 +222,5 @@
   shell: RAILS_ENV=production bundle exec rails hyrax:workflow:load
   args:
     chdir: /opt/{{ project_name }}/current
+  vars:
+    ansible_remote_tmp: /tmp/.ansible/tmp

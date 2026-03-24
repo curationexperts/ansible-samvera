@@ -1,53 +1,13 @@
 ---
-# ROLE: packages
+# ROLE: tomcat9
 # roles/tomcat9/tasks/main.yml
 #
 # installs tomcat9 for Ubuntu LTS 24.04
 
-- name: install java (OpenJDK 11)
-  become: yes
-  package: name=openjdk-11-jdk state=present
+# NOTE: FITS and Fedora reuqire Tomcat9 (Java EE) and are not compatible with Tomcat10 (Jakarta EE)
+# Ubuntu LTS 24.04 (Noble) only includes Tomcat10 in apt repostiories, so we are installing the
+# Tomcat9 packages from the LTS 22.04 (Jammy) repositories
 
-- name: set Java 11 as default
-  become: yes
-  command: update-java-alternatives --set java-1.11.0-openjdk-arm64
-
-- name: check java version
-  command: java --version
-  register: java_version
-
-# - name: Display the full registered variable
-#   ansible.builtin.debug:
-#     var: java_version
-#
-# - fail: msg='Expected Java version not detected'
-#   when: "'openjdk 11' not in java_version.stdout"
-#
-# - name: ensure tomcat group exists
-#   become: yes
-#   ansible.builtin.group:
-#     name: tomcat
-#     state: present
-#
-# - name: ensure tomcat user exists
-#   become: yes
-#   ansible.builtin.user:
-#     name: tomcat
-#     comment: Apache Tomcat
-#     group: tomcat
-#     shell: /usr/sbin/nologin
-#     create_home: false
-#     system: true
-
-- name: setup install directory
-  set_fact:
-    install_path: /home/{{ ansible_ssh_user }}/install
-
-- name: ensure install directory exists
-  file:
-    path: '{{ install_path }}'
-    state: directory
-    
 - name: install libtomcat9-java
   become: yes
   ansible.builtin.apt:
@@ -67,45 +27,32 @@
   become: yes
   ansible.builtin.apt:
     deb: http://launchpadlibrarian.net/786086834/tomcat9-admin_9.0.58-1ubuntu0.2_all.deb
-#
-# - name: download tomcat source
-#   get_url:
-#     url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.115/bin/apache-tomcat-9.0.115.tar.gz
-#     dest: '{{ install_path }}/apache-tomcat-9.0.115.tar.gz'
-#     checksum: sha512:https://downloads.apache.org/tomcat/tomcat-9/v9.0.115/bin/apache-tomcat-9.0.115.tar.gz.sha512
-#     mode: '0755'
-#
-# - name: unzip tomcat source
-#   ansible.builtin.unarchive:
-#     src: '{{ install_path }}/apache-tomcat-9.0.115.tar.gz'
-#     dest: '{{ install_path }}'
-#     creates: '{{ install_path }}/apache-tomcat-9.0.115'
-#     remote_src: yes
 
-- name: configure tomcat9 admin gui
+- name: configure tomcat9 admin user
   become: yes
   lineinfile:
     dest: /var/lib/tomcat9/conf/tomcat-users.xml
     state: present
-    line: <role rolename="manager-gui"/><user username="rdb-manager" password="{{ tomcat9_web_gui_password }}" roles="manager-gui"/>
+    line: <role rolename="manager-gui"/><user username="rdb-manager" password="{{ tomcat_web_gui_password }}" roles="manager-gui"/>
     insertbefore: </tomcat-users>
-    
-- name: increase tomcat9 memory allocation
-  become: yes
-  lineinfile:
-    dest: /etc/default/tomcat9
-    state: present
-    line: JAVA_OPTS="-Djava.awt.headless=true -Xmx1500m -XX:+UseConcMarkSweepGC"
-    regexp: -Xmx
-  
-- name: set java version for tomcat
-  become: yes
-  lineinfile:
-    dest: /etc/default/tomcat9
-    state: present
-    line: JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
-    regexp: JAVA_HOME
-  
+
+- name: customize tomcat default settings
+  become: true
+  blockinfile:
+    path: /etc/default/tomcat9
+    insertafter: EOF
+    block: |
+      # Customized settings for Hyrax environments
+      JAVA_OPTS="${JAVA_OPTS} -Dlog4j2.formatMsgNoLookups=true"
+      JAVA_OPTS="${JAVA_OPTS} -Djava.awt.headless=true"
+      JAVA_OPTS="${JAVA_OPTS} -XX:+UseG1GC"
+      JAVA_OPTS="${JAVA_OPTS} -XX:+UseCompressedOops"
+      JAVA_OPTS="${JAVA_OPTS} -XX:-UseLargePagesIndividualAllocation"
+      JAVA_OPTS="${JAVA_OPTS} -Xms{{ tomcat_min_memory | default('1024m') }}"
+      JAVA_OPTS="${JAVA_OPTS} -Xmx{{ tomcat_max_memory | default('2048m') }}"
+      JAVA_OPTS="${JAVA_OPTS} -Djava.util.logging.config.file=/etc/tomcat9/logging.properties"
+      JAVA_OPTS="${JAVA_OPTS} -server"
+
 - name: restart tomcat9
   become: yes
   service:
@@ -117,7 +64,7 @@
   uri:
     url: http://localhost:8080/manager/html
     user: rdb-manager
-    password: "{{ tomcat9_web_gui_password }}"
+    password: "{{ tomcat_web_gui_password }}"
     force_basic_auth: yes
     return_content: yes
   register: webpage

@@ -1,5 +1,0 @@
----
-# roles/fits/defaults/main.yml
-
-tomcat_port: 8080
-fits_servlet_checksum: e98450a1617c491976966a307da8b9c783c83e9e1a79bca9dbd9bc6c9a7226cd

@@ -9,6 +9,7 @@
   uri: 
     url: http://localhost:8983/solr/admin/info/system 
     return_content: true
+    status_code: [200, -1]
   register: solr_info
   ignore_errors: true
   
@@ -32,7 +33,7 @@
 - name: set solr archive for versions before 9.0
   set_fact:
     solr_archive_path: https://archive.apache.org/dist/lucene/solr
-    when: solr_version is version('9.0', '<')
+  when: solr_version is version('9.0', '<')
 
 - name: set solr archive for versions 9.0 and above
   set_fact:

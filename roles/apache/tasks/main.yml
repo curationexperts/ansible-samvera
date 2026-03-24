@@ -20,12 +20,12 @@
     - libapr1-dev
     - libaprutil1-dev
 
-- name: install optional apache modules - evasive
-  become: yes
-  package: name={{ item }} state=present
-  with_items:
-    - libapache2-mod-evasive
-
+# - name: install optional apache modules - evasive
+#   become: yes
+#   package: name={{ item }} state=present
+#   with_items:
+#     - libapache2-mod-evasive
+#
 - name: remove default apache site
   become: yes
   command: a2dissite 000-default
@@ -91,21 +91,6 @@
     content: |
       # Directory for Passenger sockets, lockfiles and stats tempfiles
       d /var/run/passenger-instreg 2775 deploy deploy - -
-
-- name: ensure deploy group exists
-  become: yes
-  ansible.builtin.group:
-    name: deploy
-    state: present
-
-- name: ensure deploy user exists
-  become: yes
-  ansible.builtin.user:
-    name: deploy
-    comment: Primary Rails user
-    shell: /bin/bash
-    create_home: true
-    group: deploy
 
 - name: initialize passenger tempfile directory
   become: yes

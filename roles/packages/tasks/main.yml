@@ -3,23 +3,13 @@
 # roles/packages/tasks/main.yml
 #
 # updates, installs packages used by other installation/configuration tasks
-#
-- name: update apt cache
-  become: yes
-  # the package module still depends on the underlying yum & apt modules
-  # where the commands differ, we can't use a single task across distros
-  package: update_cache=yes
-
-- name: install aptitude
-  # on Debian Jessie and certain minimal Ubuntu builds aptitude is not installed
-  # without aptitude installed `apt-get upgrade` fails
-  become: yes
-  package: name=aptitude state=present
 
 - name: upgrade apt packages
   become: yes
   # commands for upgrading differ - this is for apt
-  package: upgrade=full
+  package:
+    upgrade: full
+    update_cache: yes
 
 - name: install dev tools and libraries
   become: yes

@@ -16,7 +16,7 @@
     when: defined(ruby_ver) & undefined(ruby_version)
 
 - name: check if ruby {{ ruby_version }} is installed
-  shell: ruby -help | grep {{ ruby_version }}
+  shell: ruby --version | grep {{ ruby_version }}
   ignore_errors: true
   register: ruby_preinstalled
 

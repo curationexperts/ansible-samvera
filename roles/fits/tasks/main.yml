@@ -16,44 +16,35 @@
     fits_servlet_version: '1.2.3'
   when: fits_servlet_version is not defined
 
-- name: setup install directory
-  set_fact:
-    install_path: /home/{{ ansible_ssh_user }}/install
-
-- name: ensure install directory exists
-  file:
-    path: '{{ install_path }}'
-    state: directory
-
-- name: ensure fits directory exists
-  file:
-    path: '{{ install_path }}/fits-{{ fits_version }}'
-    state: directory
-
-- name: install zip utility
+# Install FITS command line tool
+- name: make fits version folder
   become: yes
-  package: name=unzip state=present
-
-- name: ensure fits installation directory exists
   file:
-    path: '{{ install_path }}/fits-{{ fits_version}}'
     state: directory
+    path:  /usr/local/lib/fits-{{ fits_version }}
 
-- name: download fits zip version {{ fits_version }}
+- name: download and unzip fits {{ fits_version }} source
   become: yes
-  get_url: url=https://github.com/harvard-lts/fits/releases/download/{{ fits_version }}/fits-{{ fits_version }}.zip owner={{ ansible_ssh_user }} dest={{ install_path }}/fits-{{ fits_version }}.zip
+  ansible.builtin.unarchive:
+    src: https://github.com/harvard-lts/fits/releases/download/{{ fits_version }}/fits-{{ fits_version }}.zip
+    dest: /usr/local/lib/fits-{{ fits_version }}
+    creates: /usr/local/lib/fits-{{ fits_version }}/fits.sh
+    remote_src: yes
 
-- name: unpack fits
+- name: only send logging to console
   become: yes
-  unarchive: src={{ install_path }}/fits-{{ fits_version }}.zip dest={{ install_path }}/fits-{{ fits_version}} creates={{ install_path }}/fits-{{ fits_version }}/fits.sh copy=no
+  lineinfile:
+    # Syslog or catalina will capture output, so we want to remove the FILE logger
+    # was 'log4j.rootLogger=INFO, CONSOLE, FILE'
+    line: 'log4j.rootLogger=INFO, CONSOLE'
+    dest: /usr/local/lib/fits-{{ fits_version }}/log4j.properties
+    regexp: 'log4j.rootLogger='
 
 - name: make fits executable
   become: yes
-  file: path={{ install_path }}/fits-{{ fits_version }}/fits.sh mode=0755
-
-- name: copy fits scripts
-  become: yes
-  shell: cp -r {{ install_path }}/fits-{{ fits_version }} /usr/local/lib/ creates=/usr/local/lib/fits-{{ fits_version }}
+  file: 
+    path: /usr/local/lib/fits-{{ fits_version }}/fits.sh
+    mode: 0755
 
 - name: symlink fits alias
   become: yes
@@ -63,83 +54,47 @@
   become: yes
   file: src=/usr/local/lib/fits-{{ fits_version }}/fits.sh dest=/usr/local/bin/fits.sh state=link
 
-- name: set FITS_HOME in fits-env.sh
+# Install and configure FITS servlet
+- name: look up service names
   become: yes
-  lineinfile: dest=/usr/local/lib/fits-{{ fits_version }}/fits-env.sh regexp=^FITS_HOME line=FITS_HOME="/usr/local/lib/fits-{{ fits_version }}" state=present
-  when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
+  ansible.builtin.service_facts:
+
+- name: set tomcat service name
+  set_fact:
+    tomcat_service: "{{ ansible_facts.services.keys() | regex_search('tomcat[0-9]+') }}" 
 
 - name: set shared libs in catalina.properties
   become: yes
-  lineinfile: dest=/etc/tomcat9/catalina.properties regexp="^shared.loader=" line="shared.loader=\"/usr/local/lib/fits-{{ fits_version }}/lib/*.jar\"" state=present
+  lineinfile: dest=/etc/{{ tomcat_service }}/catalina.properties regexp="^shared.loader=" line="shared.loader=\"/usr/local/lib/fits-{{ fits_version }}/lib/*.jar\"" state=present
   when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
 
 - name: set defaults into tomcat
   become: yes
   lineinfile:
-    dest: /etc/default/tomcat9
+    dest: /etc/default/{{ tomcat_service }}
     line: "JAVA_OPTS=\"${JAVA_OPTS} -Dfits.home=/usr/local/lib/fits-{{ fits_version }}\""
-    state: present
-
-- name: symlink fits-env.sh alias
-  become: yes
-  file: src=/usr/local/lib/fits-{{ fits_version }}/fits-env.sh dest=/usr/local/bin/fits-env.sh state=link
-  when: fits_version is match("^0\.([8-9]|10)\.[0-9]|1\.[0-9]\.[0-9]")
-
-- name: replace log4j.properties
-  become: true
-  copy:
-    src=log4j.properties
-    dest=/usr/local/lib/fits-{{ fits_version }}/log4j.properties
-
-- name: install servlet container package
-  become: yes
-  package: name=tomcat9 state=present
+    insertafter: EOF
 
 - name: download fits servlet version {{ fits_servlet_version }}
   become: yes
   get_url:
-    url: 'https://github.com/harvard-lts/FITSservlet/releases/download/{{ fits_servlet_version }}/fits-service-{{ fits_servlet_version }}.war'
+    url: https://github.com/harvard-lts/FITSservlet/releases/download/{{ fits_servlet_version }}/fits-service-{{ fits_servlet_version }}.war
     owner: tomcat
     group: tomcat
-    dest: '{{ install_path }}/fits-{{ fits_servlet_version }}.war'
-    checksum: 'sha256:{{ fits_servlet_checksum }}'
+    dest: /var/lib/{{ tomcat_service }}/webapps/fits-{{ fits_servlet_version }}.war
+    checksum: md5:https://github.com/harvard-lts/FITSservlet/releases/download/1.2.3/fits-service-1.2.3.war.md5
     force: yes
-
-- name: copy over fits.war
-  become: yes
-  command: cp {{ install_path }}/fits-{{ fits_servlet_version }}.war /var/lib/tomcat9/webapps/fits-{{ fits_servlet_version }}.war
-
-- name: copy context file
-  become: yes
-  template:
-    src: context.j2
-    dest: /etc/tomcat9/context.xml
-    owner: tomcat
-    group: tomcat
-    backup: yes
-
-- name: set port for tomcat
-  become: yes
-  replace:
-    dest: /etc/tomcat9/server.xml
-    regexp: "8080"
-    replace: "{{ tomcat_port }}"
-
-- name: add log rotation for catalina.out (tomcat/fedora logs)
-  become: yes
-  template: src=logrotate-tomcat dest=/etc/logrotate.d/tomcat9 backup=yes
 
 - name: restart servlet
   become: yes
-  service: name=tomcat9 enabled=yes state=restarted
-
-- name: wait for tomcat to come back up
-  wait_for:
-    port: '{{tomcat_port}}'
-    host: 127.0.0.1
-    timeout: 300
+  service: name={{ tomcat_service }} enabled=yes state=restarted
 
 - name: check that fits-servlet is up
   uri:
-    url: 'http://localhost:{{tomcat_port}}/fits-{{ fits_servlet_version}}/'
+    url: 'http://localhost:8080/fits-{{ fits_servlet_version}}/'
     timeout: 180
+    return_content: yes
+  register: webpage
+
+- fail: msg='FITS server is not running as expected'
+  when: "'FITS Web Service' not in webpage.content"

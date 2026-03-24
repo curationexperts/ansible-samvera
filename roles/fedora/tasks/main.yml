@@ -7,83 +7,46 @@
 # You must also create a postgres database called `fcrepo` and give the "tomcat" user
 # rights on it
 
-- name: setup install directory
-  set_fact:
-    install_path: /home/{{ ansible_ssh_user }}/install
-
-- name: ensure install directory exists
-  file:
-    path: '{{ install_path }}'
-    state: directory
-
-- name: install servlet container package
-  become: yes
-  package: name=tomcat9 state=present
-
-# # 2026-02-20 semi-manual install of Tomca9 (only tomcat10 avaialble in 24.04 packages)
-# - name: install OpenJDK 11
-#   become: yes
-#   package: name=openjdk-11-jdk state=present
-#
-# - name: add tomcat group
-#   become: yes
-#   ansible.builtin.group:
-#     name: tomcat
-#     state: present
-#
-# - name: add tomcat user
-#   become: yes
-#   ansible.builtin.user:
-#     name: tomcat
-#     comment: Apache Tomcat
-#     shell: /usr/sbin/nologin
-#     create_home: false
-#     group: tomcat
-#
-# - name: download tomcat9
-#   get_url:
-#     url: https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.115/src/apache-tomcat-9.0.115-src.tar.gz
-#     dest: '{{ install_path }}/apache-tomcat-9.0.115-src.tar.gz'
-#     timeout: 100
-#     owner: '{{ ansible_ssh_user }}'
-#     checksum: sha512:https://downloads.apache.org/tomcat/tomcat-9/v9.0.115/src/apache-tomcat-9.0.115-src.tar.gz.sha512
-#
-# - name: stop install
-#   fail: msg="Downloaded Tomcat9"
-#
-# # 2026-02-20 end alternate Tomcat9 install
-
-- name: download fedora
-  get_url: url=https://repo1.maven.org/maven2/org/fcrepo/fcrepo-webapp/{{ fedora_version }}/fcrepo-webapp-{{ fedora_version }}.war owner={{ ansible_ssh_user }} dest={{ install_path }}/fcrepo-webapp-{{ fedora_version }}.war timeout=100
-
 - name: make fedora data dir
-  file: owner=tomcat group=tomcat state=directory path=/opt/fedora-data
   become: yes
+  file:
+    owner: tomcat
+    group: tomcat
+    state: directory
+    path:  /opt/fedora-data
 
-- name: make catalina.out
-  file: owner=syslog group=adm state=touch path=/var/log/tomcat9/catalina.out
-  become: yes
-
-- name: check fedora.war
-  stat: path=/var/lib/tomcat9/webapps/fedora.war
-  register: fedora_war
-
-- name: set defaults
+- name: add fedora settings to tomcat defaults
   become: true
-  template: src=defaults.j2 dest=/etc/default/tomcat9
+  blockinfile:
+    path: /etc/default/tomcat9
+    block: |
+      JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.modeshape.configuration=classpath:/config/jdbc-postgresql/repository.json"
+      JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.home=/opt/fedora-data"
+      JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.postgresql.username=tomcat"
+      JAVA_OPTS="${JAVA_OPTS} -Dfcrepo.postgresql.port=5432"
 
-- name: copy over fedora.war
+- name: download fedora war & instal in tomcat
   become: yes
-  command: cp {{ install_path }}/fcrepo-webapp-{{ fedora_version }}.war /var/lib/tomcat9/webapps/fedora.war
-  when: fedora_war.stat.exists == False
+  get_url:
+    url: https://repo1.maven.org/maven2/org/fcrepo/fcrepo-webapp/{{ fedora_version }}/fcrepo-webapp-{{ fedora_version }}.war 
+    dest: '/var/lib/tomcat9/webapps/fedora.war'
+    timeout: 100
 
 - name: install activation
   become: yes
-  get_url: url=https://repo1.maven.org/maven2/javax/xml/bind/activation/1.0.2/activation-1.0.2.jar owner=tomcat dest=/var/lib/tomcat9/lib/activation-1.0.2.jar timeout=100
+  get_url:
+    url: https://repo1.maven.org/maven2/javax/xml/bind/activation/1.0.2/activation-1.0.2.jar
+    owner: tomcat
+    dest: /var/lib/tomcat9/lib/activation-1.0.2.jar
+    timeout: 100
 
 - name: install jaxb
   become: yes
-  get_url: url=https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar owner=tomcat dest=/var/lib/tomcat9/lib/jaxb-api-2.3.1.jar timeout=100
+  get_url:
+    url: https://repo1.maven.org/maven2/javax/xml/bind/jaxb-api/2.3.1/jaxb-api-2.3.1.jar
+    owner: tomcat
+    dest: /var/lib/tomcat9/lib/jaxb-api-2.3.1.jar
+    timeout: 100
 
 - name: create service override directory
   become: yes
@@ -91,21 +54,24 @@
     path: /etc/systemd/system/tomcat9.service.d
     state: directory
 
-- name: create systemd configuration
+- name: create systemd configuration additions for fedora
   become: yes
-  template: src=tomcat9.service dest=/etc/systemd/system/tomcat9.service.d/override.conf
-
-- name: set port for tomcat
-  become: yes
-  replace:
-    dest: /etc/tomcat9/server.xml
-    regexp: "8080"
-    replace: "{{ tomcat_port }}"
-
-- name: add log rotation for catalina.out (tomcat/fedora logs)
-  become: yes
-  template: src=logrotate-tomcat dest=/etc/logrotate.d/tomcat9 backup=yes
+  copy:
+    dest: /etc/systemd/system/tomcat9.service.d/fedora.conf
+    content: |
+      [Service]
+      ReadWritePaths=/opt/fedora-data
+      ReadWritePaths=/tmp
 
 - name: restart servlet
   become: yes
   systemd: name=tomcat9 state=restarted daemon_reload=yes
+
+- name: check fedora web gui
+  uri:
+    url: http://localhost:8080/fedora/rest
+    return_content: yes
+  register: webpage
+
+- fail: msg='fedora is not running as expected'
+  when: "'fedora:Resource' not in webpage.content"

@@ -36,9 +36,6 @@
   become: yes
   file: owner=postgres group=postgres state=directory path=/opt/pg_backups
 
-
-
-
 - name: write new pgdata value
   become: yes
   lineinfile:
@@ -95,6 +92,8 @@
   with_items:
     - tomcat
     - deploy
+  vars:
+    ansible_remote_tmp: /tmp/.ansible/tmp
 
 - name: create rails db
   become: yes

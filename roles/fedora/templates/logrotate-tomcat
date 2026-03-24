@@ -1,8 +1,0 @@
-/var/log/tomcat9/catalina.out {
-  copytruncate
-  weekly
-  rotate 52
-  compress
-  missingok
-  create 640 tomcat9 adm
-}

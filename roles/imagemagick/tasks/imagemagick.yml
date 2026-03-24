@@ -51,7 +51,7 @@
     chdir: imagemagick_sources/ImageMagick-{{ imagemagick_ver }}
     creates: ./utilities/magick
 
-- name: install imagemagick {{ imagemagick_patchlevel }}
+- name: install imagemagick {{ imagemagick_ver }}
   become: yes
   shell:
     cmd: make install

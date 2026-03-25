@@ -204,8 +204,8 @@
   ignore_errors: yes
   args:
     chdir: /opt/solr 
-  vars:
-    ansible_remote_tmp: /tmp/.ansible/tmp
+  # vars:
+  #   ansible_remote_tmp: /tmp/.ansible/tmp
 
 - name: create default admin sets
   become: yes
@@ -213,8 +213,8 @@
   shell: RAILS_ENV=production bundle exec rails hyrax:default_admin_set:create
   args:
     chdir: /opt/{{ project_name }}/current
-  vars:
-    ansible_remote_tmp: /tmp/.ansible/tmp
+  # vars:
+  #   ansible_remote_tmp: /tmp/.ansible/tmp
 
 - name: create workflows
   become: yes
@@ -222,5 +222,5 @@
   shell: RAILS_ENV=production bundle exec rails hyrax:workflow:load
   args:
     chdir: /opt/{{ project_name }}/current
-  vars:
-    ansible_remote_tmp: /tmp/.ansible/tmp
+  # vars:
+  #   ansible_remote_tmp: /tmp/.ansible/tmp
